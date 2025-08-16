@@ -13,7 +13,7 @@ export default function Footer() {
               Dr.PHONE
             </h5>
             <p className="small">
-               Buddhi Professional phone repair services with expert technicians and genuine parts.  
+             Professional phone repair services with expert technicians and genuine parts.  
               Your trusted device repair solution.
             </p>
             <div>
