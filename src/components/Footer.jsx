@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import Home from "../pages/Home"
+=======
+
+>>>>>>> repair-tracking
 
 export default function Footer() {
   return (

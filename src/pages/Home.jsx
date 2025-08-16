@@ -1,6 +1,11 @@
 import React from "react";
 import "../home.css";
 import "../index.css";
+<<<<<<< HEAD
+=======
+import RepairTrackingModal from "../components/RepairTrackingModal";
+
+>>>>>>> repair-tracking
 
 // Features array
 const features = [
@@ -25,20 +30,41 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
+<<<<<<< HEAD
       <section id="home" className="py-5 hero pt-3 pb-3">
+=======
+      <section id="home" className="py-5 hero  ">
+>>>>>>> repair-tracking
         <div className="container">
           <div className="row align-items-center">
             <div className="col-md-6 text-start">
               <h1 className="fw-bold">Your One-Stop Solution for Mobile Repairs</h1>
               <p className="lead text-secondary">Fast, Fair, Reliable</p>
+<<<<<<< HEAD
               <a href="#" className="btn btn-outline-primary">
                 Repair Tracking
               </a>
+=======
+            <a
+  href="#"
+  className="btn btn-success btn-lg rounded-pill text-white shadow-lg"
+  data-bs-toggle="modal"
+  data-bs-target="#repairTrackingModal"
+>
+  Repair Tracking
+</a>
+
+
+>>>>>>> repair-tracking
             </div>
             <div className="col-md-6 text-center"></div>
           </div>
         </div>
       </section>
+<<<<<<< HEAD
+=======
+      
+>>>>>>> repair-tracking
 
       {/* Features Grid */}
       <section id="home" className="features-section">
@@ -60,7 +86,11 @@ export default function Home() {
       </section>
 
       {/* Repairs Section */}
+<<<<<<< HEAD
      <section id="services" className="features-section">
+=======
+     <section id="services" className="features-section" pb-5>
+>>>>>>> repair-tracking
   <h2 className="features-title">All kinds of repairs. For real.</h2>
   <div className="features-grid">
     {[
@@ -86,6 +116,7 @@ export default function Home() {
 
 
       {/* Testimonials Section */}
+<<<<<<< HEAD
       <section  id = "about" className="features-section">
         <h2 className="features-title">What Our Customers Say</h2>
         <div className="features-grid">
@@ -108,6 +139,44 @@ export default function Home() {
           ))}
         </div>
       </section>
+=======
+     <section id="about" className="features-section py-5" style={{  color: '#fff' }}>
+  <div className="container">
+    <h2 className="features-title text-center mb-5">What Our Customers Say</h2>
+
+    <div className="row g-4 justify-content-center">
+      {[
+        { name: "John Doe", rating: 5, feedback: "Great service! My phone feels brand new.", img: "/img8.jpeg" },
+        { name: "Lisa Ray", rating: 5, feedback: "Quick and affordable repair. Highly recommended.", img: "/img8.jpeg" },
+        { name: "Mike Chen", rating: 5, feedback: "Professional team, great results!", img: "/img8.jpeg" },
+        { name: "Emma Watson", rating: 5, feedback: "Excellent customer support and fast repair.", img: "/img8.jpeg" },
+        { name: "David Lee", rating: 5, feedback: "Reliable service. I trust them with all my devices.", img: "/img8.jpeg" },
+      ].map((testimonial, index) => (
+        <div key={index} className="col-md-6 col-lg-4">
+          <div className="card text-center shadow-sm h-100" style={{ borderRadius: '15px' }}>
+            <img
+              src={testimonial.img}
+              alt={testimonial.name}
+              className="card-img-top mx-auto mt-3"
+              style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }}
+            />
+            <div className="card-body">
+              <h5 className="card-title">{testimonial.name}</h5>
+              <p className="card-text">
+                {Array.from({ length: testimonial.rating }).map((_, i) => (
+                  <i key={i} className="bi bi-star-fill text-warning"></i>
+                ))}
+              </p>
+              <p className="card-text fst-italic">"{testimonial.feedback}"</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+>>>>>>> repair-tracking
 
       {/* Contact Form Section in Grid/Card Layout */}
   <section  id="contact" className="features-section">
@@ -151,7 +220,15 @@ export default function Home() {
     </div>
   </div>
 </section>
+<<<<<<< HEAD
 
     </>
   );
 }
+=======
+<RepairTrackingModal />
+
+    </>
+  );
+}
+>>>>>>> repair-tracking

@@ -63,12 +63,20 @@
 
 
 .hero {
+<<<<<<< HEAD
   background-image: url('/img9.jpg'); /* path to image in public folder */
+=======
+  background-image: url('/img9.jpg') ; /* path to image in public folder */
+>>>>>>> repair-tracking
   
   background-size: cover;       /* cover entire section */
   background-position: center;  /* center the image */
   background-repeat: no-repeat;
+<<<<<<< HEAD
   height: 500px; 
+=======
+  height: 600px; 
+>>>>>>> repair-tracking
   width: 100%;               /* full viewport height */
   display: flex;
   align-items: center;          /* vertically center content */
