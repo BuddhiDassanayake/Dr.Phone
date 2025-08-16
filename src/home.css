@@ -108,3 +108,8 @@ html {
 section {
   scroll-margin-top: 80px; /* adjust this to your navbar height */
 }
+.btn-success:hover {
+  background-color: #146c43 !important;
+  border-color: #146c43 !important;
+  transition: background-color 0.3s;
+}

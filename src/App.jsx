@@ -1,15 +1,14 @@
 import React from "react";
-
-// Components
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
-// Pages
+import LoginCard from "./components/Login/LoginModal.jsx";
 import Home from "./pages/Home";
-
-// Styles
 import "./index.css";
 import "./home.css";
+import LoginModal from "./components/Login/LoginModal.jsx";
+import SignupModal from "./components/Signup/SignupModal.jsx";
 
 function App() {
   return (
@@ -24,6 +23,8 @@ function App() {
 
       {/* Footer */}
       <Footer />
+    <LoginModal/>
+    <SignupModal/>
     </div>
   );
 }
