@@ -1,34 +1,38 @@
 import React from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar.jsx";
+import Home from "./pages/Home.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx"; // Admin login page
+import AdminDashboard from "./pages/AdminDashboard.jsx"; // Admin dashboard
+import Footer from "./components/Footer.jsx";
 import LoginCard from "./components/Login/LoginModal.jsx";
-import Home from "./pages/Home";
-import "./index.css";
-import "./home.css";
-import LoginModal from "./components/Login/LoginModal.jsx";
 import SignupModal from "./components/Signup/SignupModal.jsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <Router>
       {/* Navigation */}
       <Navbar />
 
-      {/* Page Content */}
+      {/* Bootstrap Modals */}
+      <LoginCard />
+      <SignupModal />
+
+      {/* Main Content */}
       <main className="flex-grow-1">
-        <Home />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
       </main>
 
       {/* Footer */}
       <Footer />
-    <LoginModal/>
-    <SignupModal/>
-    </div>
+    </Router>
   );
 }
 
 export default App;
-
-
