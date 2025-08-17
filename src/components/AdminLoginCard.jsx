@@ -5,15 +5,15 @@ export default function AdminLoginCard() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // React Router navigation
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Check credentials
+    // Check credentials (replace with real backend check later)
     if (username === "admin" && password === "123") {
       setError("");
-      navigate("/admin"); // ✅ Redirect to Admin Dashboard
+      navigate("/admin/dashboard"); // ✅ Redirect to Dashboard
     } else {
       setError("Invalid username or password");
     }
