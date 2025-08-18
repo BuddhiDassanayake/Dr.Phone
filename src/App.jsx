@@ -1,30 +1,25 @@
+// src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
-import Footer from "./components/Footer.jsx";
+import Footer from "./components/Footer.jsx"; // existing footer for public pages
 import Home from "./pages/Home.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Customers from "./pages/Customers.jsx";
 import Repairs from "./pages/Repairs.jsx";
-import RepairTrackingModal from "./components/RepairTrackingModal.jsx";
-import LoginCard from "./components/Login/LoginModal.jsx";
-import SignupModal from "./components/Signup/SignupModal.jsx";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+function AppContent() {
+  const location = useLocation();
 
-function App() {
+  // Define admin page paths
+  const adminPages = ["/admin", "/admin/dashboard", "/admin/customers", "/admin/repairs"];
+  const isAdminPage = adminPages.includes(location.pathname);
+
   return (
-    <Router>
+    <>
       {/* Navbar */}
       <Navbar />
-
-      {/* Bootstrap Modals */}
-      <LoginCard />
-      <SignupModal />
-      <RepairTrackingModal />
 
       {/* Main Content */}
       <main className="flex-grow-1">
@@ -37,13 +32,19 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/repairs" element={<Repairs />} />
-
-          {/* Optional: Add more admin routes */}
         </Routes>
       </main>
 
-      {/* Footer */}
-      <Footer />
+      {/* Footer: only for non-admin pages */}
+      {!isAdminPage && <Footer />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
