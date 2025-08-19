@@ -206,3 +206,12 @@ button[data-bs-target="#repairTrackingModal"] {
 button[data-bs-target="#repairTrackingModal"]:hover {
   background-color: var(--color-accent-hover) !important;
 }
+
+.step-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}

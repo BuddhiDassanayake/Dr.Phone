@@ -122,7 +122,7 @@ export default function RepairPage() {
         <main className="flex-grow-1 p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h4 className="fw-bold">Repairs Management</h4>
-            <button className="btn btn-success" onClick={() => { setEditingRepair(null); setShowForm(true); }}>➕ Add Repair</button>
+           
           </div>
 
           {/* Form Modal */}

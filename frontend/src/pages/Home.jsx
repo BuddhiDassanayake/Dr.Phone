@@ -24,18 +24,18 @@ const features = [
 const howItWorksSteps = [
     {
         icon: "bi bi-card-text",
-        title: "1. Get a Free Quote",
-        description: "Tell us what's wrong, and we'll provide an instant, no-obligation quote.",
+        title: "1. Get Quotation",
+        description: "Tell us the issue with your device, and we'll provide you with a free. ",
     },
     {
         icon: "bi bi-box-seam",
-        title: "2. Send Us Your Device",
-        description: "Easily mail in your device or drop it off at one of our convenient locations.",
+        title: "2. Register Your Device",
+        description: "Once you approve the quote, register your phone with us and detail the necessary repairs.",
     },
     {
         icon: "bi bi-tools",
-        title: "3. We'll Fix It Fast",
-        description: "Our experts will diagnose and repair your device, keeping you updated.",
+        title: "3. Track Your Repair",
+        description: "Stay informed with real-time updates on the status of your repair from start to finish.",
     },
 ];
 

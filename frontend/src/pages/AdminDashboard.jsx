@@ -15,7 +15,6 @@ export default function AdminDashboard() {
   // --- State Management ---
   const [showModal, setShowModal] = useState(false);
   const [repairs, setRepairs] = useState([]);
-  const [lastAddedRepair, setLastAddedRepair] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,9 +39,7 @@ export default function AdminDashboard() {
     fetchRepairs();
   }, []);
 
-  // --- Memoized Data Calculations for Performance ---
-
-  // 1. Overall Status Stats
+  // --- Memoized Data Calculations ---
   const statusStats = useMemo(() => ({
     pending: repairs.filter(r => r.status === "Pending").length,
     inProgress: repairs.filter(r => r.status === "Ongoing").length,
@@ -50,7 +47,6 @@ export default function AdminDashboard() {
     total: repairs.length,
   }), [repairs]);
 
-  // 2. Data for Daily Repairs Line Chart (Last 7 days)
   const dailyRepairsData = useMemo(() => {
     const labels = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -74,10 +70,9 @@ export default function AdminDashboard() {
     };
   }, [repairs]);
 
-  // 3. Data for Repair Types Bar Chart
   const repairTypesData = useMemo(() => {
     const types = repairs.reduce((acc, { service }) => ({ ...acc, [service]: (acc[service] || 0) + 1 }), {});
-    const sortedTypes = Object.entries(types).sort(([, a], [, b]) => b - a).slice(0, 7); // Show top 7
+    const sortedTypes = Object.entries(types).sort(([, a], [, b]) => b - a).slice(0, 7);
 
     return {
       labels: sortedTypes.map(([label]) => label),
@@ -89,13 +84,11 @@ export default function AdminDashboard() {
     };
   }, [repairs]);
 
-  // 4. Recent Activity Feed Data
   const recentActivity = useMemo(() =>
     [...repairs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5),
     [repairs]
   );
   
-  // --- Chart & Data Configurations ---
   const doughnutData = {
     labels: ["Pending", "In Progress", "Completed"],
     datasets: [{
@@ -111,13 +104,12 @@ export default function AdminDashboard() {
     scales: { y: { beginAtZero: true, grid: { drawBorder: false } }, x: { grid: { display: false } } },
   };
 
-  // --- Event Handlers (Add Repair functionality remains the same) ---
   const handleAddRepair = async (repairData) => { /* ... */ };
 
-  // --- Reusable UI Components ---
+  // --- UI Components ---
   const StatCard = ({ title, value, icon, color }) => (
     <div className="col">
-      <div className="p-3 d-flex" style={{ ...styles.card, borderLeft: `5px solid ${color}` }}>
+      <div className="p-3 d-flex dashboard-card" style={{ borderLeft: `5px solid ${color}` }}>
         <div style={{...styles.iconWrapper, color}}>
           {icon}
         </div>
@@ -131,7 +123,7 @@ export default function AdminDashboard() {
 
   const ChartCard = ({ title, icon, children }) => (
     <div className="col-xl-6 mb-4">
-      <div className="p-4" style={{ ...styles.card, height: "400px" }}>
+      <div className="p-4 dashboard-card" style={{ height: "400px" }}>
         <h6 style={styles.cardTitle}>
           <span className="me-2">{icon}</span>{title}
         </h6>
@@ -140,7 +132,6 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // --- Main Render ---
   return (
     <div className="d-flex" style={styles.page}>
       <Sidebar />
@@ -183,51 +174,53 @@ export default function AdminDashboard() {
               <Bar data={repairTypesData} options={{ ...commonChartOptions, indexAxis: 'y' }} />
             </ChartCard>
 
-            {/* Recent Activity Card */}
+            {/* Recent Activity */}
             <div className="col-xl-6 mb-4">
-                <div className="p-4" style={{...styles.card, height: '400px'}}>
-                    <h6 style={styles.cardTitle}><FaHistory className="me-2" />Recent Activity</h6>
-                    <div className="list-group list-group-flush">
-                        {recentActivity.length > 0 ? recentActivity.map(r => (
-                            <div key={r.id} className="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
-                                <div>
-                                    <p style={styles.activityText}><strong>{r.name}</strong> submitted a request for <strong>{r.service}</strong>.</p>
-                                    <small style={styles.activitySubText}>{r.brand} {r.model}</small>
-                                </div>
-                                <small style={styles.activitySubText}>{new Date(r.created_at).toLocaleDateString()}</small>
-                            </div>
-                        )) : <p style={styles.activityText}>No recent activity to display.</p>}
+              <div className="p-4 dashboard-card" style={{ height: '400px' }}>
+                <h6 style={styles.cardTitle}><FaHistory className="me-2" />Recent Activity</h6>
+                <div className="list-group list-group-flush">
+                  {recentActivity.length > 0 ? recentActivity.map(r => (
+                    <div key={r.id} className="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
+                      <div>
+                        <p style={styles.activityText}><strong>{r.name}</strong> submitted a request for <strong>{r.service}</strong>.</p>
+                        <small style={styles.activitySubText}>{r.brand} {r.model}</small>
+                      </div>
+                      <small style={styles.activitySubText}>{new Date(r.created_at).toLocaleDateString()}</small>
                     </div>
+                  )) : <p style={styles.activityText}>No recent activity to display.</p>}
                 </div>
+              </div>
             </div>
           </div>
         </main>
+
+        {/* --- Footer --- */}
+        {/* Footer */}
+<div className="footer-bottom text-center py-3 mt-4">
+  <p className="mb-0 text-light">
+    &copy; {new Date().getFullYear()} Dr.PHONE. All Rights Reserved.
+  </p>
+</div>
+
+
       </div>
       <AddRepairModal show={showModal} onClose={() => setShowModal(false)} onAdd={handleAddRepair} />
     </div>
   );
 }
 
-// --- Professional Styles ---
+// --- Styles ---
 const styles = {
   page: {
     minHeight: "100vh",
     backgroundColor: "#f4f7fc",
     fontFamily: "'Inter', sans-serif",
   },
-  mainContent: {
-    overflowY: 'auto'
-  },
+  mainContent: { overflowY: 'auto' },
   pageTitle: {
     fontWeight: '700',
     color: '#212529',
     fontSize: '1.75rem',
-  },
-  card: {
-    border: "none",
-    borderRadius: "10px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.05)",
-    backgroundColor: "#fff",
   },
   cardTitle: {
     fontWeight: '600',
@@ -280,12 +273,12 @@ const styles = {
     transition: 'background-color 0.2s ease, color 0.2s ease',
   },
   activityText: {
-      color: '#343a40',
-      marginBottom: '0.25rem',
-      fontSize: '0.95rem',
+    color: '#343a40',
+    marginBottom: '0.25rem',
+    fontSize: '0.95rem',
   },
   activitySubText: {
-      color: '#6c757d',
-      fontSize: '0.85rem'
+    color: '#6c757d',
+    fontSize: '0.85rem'
   }
 };
