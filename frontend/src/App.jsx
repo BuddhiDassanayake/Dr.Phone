@@ -29,7 +29,6 @@ function AppContent() {
           {/* Admin Pages */}
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/repairs" element={<Repairs />} />
         </Routes>
       </main>

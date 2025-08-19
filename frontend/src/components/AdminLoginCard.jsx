@@ -45,7 +45,15 @@ export default function AdminLoginCard() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button type="submit" className="btn btn-success w-100">
+          <button
+            type="submit"
+            className="btn w-100" // `btn-success` was removed here
+            style={{
+              backgroundColor: "#1ABC9C",
+              borderColor: "#1ABC9C",
+              color: "white"
+            }}
+          >
             Login
           </button>
         </form>

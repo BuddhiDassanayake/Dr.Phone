@@ -1,0 +1,129 @@
+/* === Site Footer === */
+
+.site-footer {
+  background-color: #1D2939; /* A dark, modern background */
+  color: #adb5bd; /* A soft, light gray for text */
+  padding: 60px 0;
+  font-size: 0.95rem;
+}
+
+.footer-content {
+  padding-bottom: 40px;
+}
+
+/* Footer Brand & Description */
+.footer-brand {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff; /* White color for the brand name */
+  margin-bottom: 15px;
+}
+
+.footer-description {
+  line-height: 1.6;
+  max-width: 350px; /* Constrain width for better readability */
+}
+
+/* Social Media Icons */
+.social-icons {
+  margin-top: 25px;
+}
+
+.social-icons a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #343a40;
+  color: #ffffff;
+  font-size: 1.1rem;
+  text-decoration: none;
+  margin-right: 10px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.social-icons a:hover {
+  background-color: #007bff; /* Assuming this is your accent color from 'btn-accent' */
+  color: #ffffff;
+}
+
+/* Footer Headings */
+.footer-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+/* Footer Links */
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #adb5bd;
+  text-decoration: none;
+  transition: color 0.3s ease, padding-left 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+  padding-left: 5px; /* Adds a subtle indent effect on hover */
+}
+
+/* Contact Info Section */
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.footer-contact i {
+  margin-right: 15px;
+  font-size: 1.2rem;
+  color: #007bff; /* Use accent color for icons */
+  margin-top: 3px;
+}
+
+.footer-contact span {
+  flex: 1;
+}
+
+/* Footer Bottom Bar */
+.footer-bottom {
+  border-top: 1px solid #343a40; /* A subtle separator line */
+  padding-top: 30px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+  .footer-brand, .footer-heading {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .site-footer {
+    text-align: center;
+  }
+  
+  .footer-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-contact li {
+    justify-content: center;
+    text-align: left; /* Keep text left-aligned within its container */
+  }
+
+  .footer-content {
+    padding-bottom: 10px;
+  }
+}

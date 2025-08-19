@@ -1,60 +1,66 @@
-
 import React from "react";
+import "../footer.css"; // Ensure this CSS file is created and imported
+
 export default function Footer() {
   return (
-    <footer id ="contact" className="bg-success text-white pt-5 pb-5">
+    <footer className="site-footer">
       <div className="container">
-        <div className="row">
+        <div className="row footer-content">
 
-          {/* Logo & Description */}
-          <div className="col-md-3 mb-3">
-            <h5 className="fw-bold">
-              <img src="/logo.png" alt="Dr.Phone" style={{ height: '25px', marginRight: '5px' }} />
-              Dr.PHONE
-            </h5>
-            <p className="small">
-             Professional phone repair services with expert technicians and genuine parts.  
-              Your trusted device repair solution.
+          {/* Column 1: Brand & Socials */}
+          <div className="col-lg-4 col-md-12 mb-4 mb-lg-0">
+            <h5 className="footer-brand">Dr.PHONE</h5>
+            <p className="footer-description">
+              Your trusted solution for professional smartphone repairs. We use expert technicians and premium parts to bring your device back to life.
             </p>
-            <div>
-              <a href="#" className="text-white me-2"><i className="bi bi-github"></i></a>
-              <a href="#" className="text-white me-2"><i className="bi bi-twitter"></i></a>
-              <a href="#" className="text-white"><i className="bi bi-apple"></i></a>
+            <div className="social-icons">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i className="bi bi-twitter"></i></a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i className="bi bi-github"></i></a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i className="bi bi-linkedin"></i></a>
             </div>
           </div>
 
-          {/* Services */}
-          <div className="col-md-3 mb-3">
-            <h6 className="fw-bold">Services</h6>
-            <ul className="list-unstyled small">
-              <li>Screen Repair</li>
-              <li>Battery Replacement</li>
-              <li>Water Damage</li>
-              <li>Camera Repair</li>
+          {/* Column 2: Quick Links */}
+          <div className="col-lg-2 col-md-4 mb-4 mb-md-0">
+            <h6 className="footer-heading">Quick Links</h6>
+            <ul className="footer-links list-unstyled">
+              <li><a href="#home">Home</a></li>
+              <li><a href="#services">Services</a></li>
+              <li><a href="#testimonials">Testimonials</a></li>
+              <li><a href="#contact">Contact</a></li>
             </ul>
           </div>
 
-          {/* Support */}
-          <div className="col-md-3 mb-3">
-            <h6 className="fw-bold">Support</h6>
-            <ul className="list-unstyled small">
-              <li>Track Repair</li>
-              <li>Warranty</li>
-              <li>FAQ</li>
-              <li>Contact Us</li>
+          {/* Column 3: Support */}
+          <div className="col-lg-3 col-md-4 mb-4 mb-md-0">
+            <h6 className="footer-heading">Support</h6>
+            <ul className="footer-links list-unstyled">
+              <li>
+                <a href="#!" data-bs-toggle="modal" data-bs-target="#repairTrackingModal">
+                  Track My Repair
+                </a>
+              </li>
+              <li><a href="#!">Warranty Policy</a></li>
+              <li><a href="#!">FAQ</a></li>
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div className="col-md-3 mb-3">
-            <h6 className="fw-bold">Contact Info</h6>
-            <ul className="list-unstyled small">
-              <li><i className="bi bi-geo-alt-fill me-2"></i>123 Tech Street, Digital City</li>
-              <li><i className="bi bi-telephone-fill me-2"></i>(999) 123-TECH</li>
-              <li><i className="bi bi-envelope-fill me-2"></i>info@drphone.com</li>
+          {/* Column 4: Contact Info */}
+          <div className="col-lg-3 col-md-4 mb-4 mb-md-0">
+            <h6 className="footer-heading">Contact Info</h6>
+            <ul className="footer-contact list-unstyled">
+              <li><i className="bi bi-geo-alt-fill"></i><span>123 Tech Street, Digital City</span></li>
+              <li><i className="bi bi-telephone-fill"></i><span>(999) 123-TECH</span></li>
+              <li><i className="bi bi-envelope-fill"></i><span>info@drphone.com</span></li>
             </ul>
           </div>
 
+        </div>
+
+        <div className="footer-bottom">
+          <p className="mb-0">
+            &copy; {new Date().getFullYear()} Dr.PHONE. All Rights Reserved.
+          </p>
         </div>
       </div>
     </footer>

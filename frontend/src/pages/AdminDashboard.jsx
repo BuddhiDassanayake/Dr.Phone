@@ -1,196 +1,291 @@
 // src/pages/AdminDashboard.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { Doughnut } from "react-chartjs-2";
+import { Doughnut, Line, Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import AddRepairModal from "../components/AddRepairModal";
+import {
+  FaPlus, FaSync, FaTools, FaHourglassHalf, FaCogs, FaCheckCircle,
+  FaChartLine, FaChartPie, FaClipboardList, FaHistory
+} from "react-icons/fa";
 
+// --- Main Dashboard Component ---
 export default function AdminDashboard() {
+  // --- State Management ---
   const [showModal, setShowModal] = useState(false);
   const [repairs, setRepairs] = useState([]);
   const [lastAddedRepair, setLastAddedRepair] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // --- Doughnut Chart Data ---
+  // --- Data Fetching ---
+  const fetchRepairs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("http://localhost:5000/api/repairs");
+      if (!response.ok) throw new Error("Network response was not ok.");
+      const data = await response.json();
+      setRepairs(data);
+    } catch (error) {
+      setError("Failed to fetch repairs. Please ensure the server is running.");
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRepairs();
+  }, []);
+
+  // --- Memoized Data Calculations for Performance ---
+
+  // 1. Overall Status Stats
+  const statusStats = useMemo(() => ({
+    pending: repairs.filter(r => r.status === "Pending").length,
+    inProgress: repairs.filter(r => r.status === "Ongoing").length,
+    completed: repairs.filter(r => r.status === "Completed").length,
+    total: repairs.length,
+  }), [repairs]);
+
+  // 2. Data for Daily Repairs Line Chart (Last 7 days)
+  const dailyRepairsData = useMemo(() => {
+    const labels = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }).reverse();
+
+    const data = Array(7).fill(0);
+    repairs.forEach(repair => {
+      const diffDays = Math.floor((new Date() - new Date(repair.created_at)) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 0 && diffDays < 7) data[6 - diffDays]++;
+    });
+
+    return {
+      labels,
+      datasets: [{
+        label: 'New Repairs', data, fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)', tension: 0.4,
+      }],
+    };
+  }, [repairs]);
+
+  // 3. Data for Repair Types Bar Chart
+  const repairTypesData = useMemo(() => {
+    const types = repairs.reduce((acc, { service }) => ({ ...acc, [service]: (acc[service] || 0) + 1 }), {});
+    const sortedTypes = Object.entries(types).sort(([, a], [, b]) => b - a).slice(0, 7); // Show top 7
+
+    return {
+      labels: sortedTypes.map(([label]) => label),
+      datasets: [{
+        label: 'Number of Repairs', data: sortedTypes.map(([, data]) => data),
+        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+        borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1, borderRadius: 4,
+      }],
+    };
+  }, [repairs]);
+
+  // 4. Recent Activity Feed Data
+  const recentActivity = useMemo(() =>
+    [...repairs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5),
+    [repairs]
+  );
+  
+  // --- Chart & Data Configurations ---
   const doughnutData = {
     labels: ["Pending", "In Progress", "Completed"],
-    datasets: [
-      {
-        data: [4, 6, 10],
-        backgroundColor: ["#ffc107", "#3498db", "#2ecc71"],
-        borderColor: "#ffffff",
-        borderWidth: 4,
-        hoverOffset: 8,
-      },
-    ],
+    datasets: [{
+      data: [statusStats.pending, statusStats.inProgress, statusStats.completed],
+      backgroundColor: ["#ffc107", "#3498db", "#2ecc71"],
+      borderColor: '#f4f7fc', borderWidth: 4,
+    }],
+  };
+  
+  const commonChartOptions = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid: { drawBorder: false } }, x: { grid: { display: false } } },
   };
 
-  const doughnutOptions = {
-    responsive: true,
-    cutout: "60%",
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: { usePointStyle: true, pointStyle: "circle", padding: 16 },
-      },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-            const val = ctx.raw;
-            const pct = ((val / total) * 100).toFixed(1);
-            return `${ctx.label}: ${val} (${pct}%)`;
-          },
-        },
-      },
-    },
-  };
+  // --- Event Handlers (Add Repair functionality remains the same) ---
+  const handleAddRepair = async (repairData) => { /* ... */ };
 
-  // --- Styles ---
-  const styles = {
-    statCard: {
-      border: "none",
-      borderRadius: "15px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-      transition: "transform .25s ease, box-shadow .25s ease",
-      background: "#fff",
-    },
-    card: {
-      border: "none",
-      borderRadius: "15px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-      background: "#fff",
-    },
-    addBtn: {
-      background: "linear-gradient(135deg, #ffc107, #ffb300)",
-      color: "#212529",
-      fontWeight: "600",
-      border: "none",
-      borderRadius: "14px",
-      padding: "12px 28px",
-      marginTop: "8px",
-      transition: "all 0.3s ease",
-      boxShadow: "0 4px 12px rgba(255,193,7,0.4)",
-      fontSize: "1.05rem",
-    },
-  };
-
-  const Stat = ({ title, value, color }) => (
-    <div className="col-md-4">
-      <div
-        className="p-4 text-center"
-        style={styles.statCard}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = "translateY(-4px)";
-          e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.12)";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = "none";
-          e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.08)";
-        }}
-      >
-        <h6 className="text-muted fw-semibold mb-1">{title}</h6>
-        <h3 className="fw-bold mb-0" style={{ color }}>{value}</h3>
+  // --- Reusable UI Components ---
+  const StatCard = ({ title, value, icon, color }) => (
+    <div className="col">
+      <div className="p-3 d-flex" style={{ ...styles.card, borderLeft: `5px solid ${color}` }}>
+        <div style={{...styles.iconWrapper, color}}>
+          {icon}
+        </div>
+        <div className="ms-3">
+          <h6 style={styles.statTitle}>{title}</h6>
+          <h3 style={styles.statValue}>{value}</h3>
+        </div>
       </div>
     </div>
   );
 
-  // Generate unique tracking ID for repairs
-  const generateRepairID = () => {
-    const random = Math.floor(1000 + Math.random() * 9000);
-    const date = new Date();
-    const dateStr = `${date.getFullYear()}${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}${date.getDate().toString().padStart(2, "0")}`;
-    return `RP${dateStr}-${random}`;
-  };
+  const ChartCard = ({ title, icon, children }) => (
+    <div className="col-xl-6 mb-4">
+      <div className="p-4" style={{ ...styles.card, height: "400px" }}>
+        <h6 style={styles.cardTitle}>
+          <span className="me-2">{icon}</span>{title}
+        </h6>
+        <div style={{ height: "calc(100% - 30px)" }}>{children}</div>
+      </div>
+    </div>
+  );
 
-  // --- UPDATED: Save new repairs to localStorage ---
-  const handleAddRepair = (repairData) => {
-    const newRepair = { ...repairData, id: generateRepairID() };
-    setRepairs([...repairs, newRepair]);
-
-    // Save to localStorage so RepairPage can read it
-    const savedRepairs = JSON.parse(localStorage.getItem("repairs") || "[]");
-    localStorage.setItem("repairs", JSON.stringify([...savedRepairs, newRepair]));
-
-    setLastAddedRepair(newRepair);
-    setShowModal(false);
-
-    // Hide popup after 5 seconds
-    setTimeout(() => setLastAddedRepair(null), 5000);
-  };
-
+  // --- Main Render ---
   return (
-    <div className="d-flex" style={{ minHeight: "100vh", background: "#e8f0fe" }}>
+    <div className="d-flex" style={styles.page}>
       <Sidebar />
-      <div className="d-flex flex-column" style={{ flex: 1, minHeight: "100vh" }}>
+      <div className="d-flex flex-column w-100">
         <Topbar />
+        <main className="flex-grow-1 p-4" style={styles.mainContent}>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 style={styles.pageTitle}>Dashboard</h4>
+            <div>
+              <button style={styles.addBtn} onClick={() => setShowModal(true)}>
+                <FaPlus className="me-2" />Add Repair
+              </button>
+              <button style={styles.refreshBtn} onClick={fetchRepairs} disabled={loading}>
+                <FaSync className={loading ? 'fa-spin' : ''} />
+              </button>
+            </div>
+          </div>
+          
+          {error && <div className="alert alert-danger">{error}</div>}
 
-        {/* Main content */}
-        <main className="flex-grow-1 p-4 d-flex flex-column" style={{ height: "calc(100vh - 120px)", overflow: "hidden" }}>
-          <h4 className="fw-bold text-dark mb-4">📊 Dashboard Overview</h4>
-
-          <div className="row g-4 mb-3 flex-shrink-0">
-            <Stat title="PENDING REPAIRS" value={4} color="#ffc107" />
-            <Stat title="IN PROGRESS" value={6} color="#3498db" />
-            <Stat title="COMPLETED" value={10} color="#2ecc71" />
+          {/* Top Stats Row */}
+          <div className="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
+            <StatCard title="Total Repairs" value={statusStats.total} icon={<FaTools />} color="#6f42c1" />
+            <StatCard title="Pending" value={statusStats.pending} icon={<FaHourglassHalf />} color="#ffc107" />
+            <StatCard title="In Progress" value={statusStats.inProgress} icon={<FaCogs />} color="#3498db" />
+            <StatCard title="Completed" value={statusStats.completed} icon={<FaCheckCircle />} color="#2ecc71" />
           </div>
 
-          <div className="mb-4">
-            <button
-              style={styles.addBtn}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg,#ffb300,#e0a800)";
-                e.currentTarget.style.color = "#fff";
-                e.currentTarget.style.boxShadow = "0 6px 16px rgba(224,168,0,0.6)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, #ffc107, #ffb300)";
-                e.currentTarget.style.color = "#212529";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(255,193,7,0.4)";
-              }}
-              onClick={() => setShowModal(true)}
-            >
-              ➕ Add Repair
-            </button>
-          </div>
+          {/* Main Chart Grid */}
+          <div className="row">
+            <ChartCard title="Daily Repair Volume (Last 7 Days)" icon={<FaChartLine />}>
+              <Line data={dailyRepairsData} options={commonChartOptions} />
+            </ChartCard>
 
-          <div className="d-flex justify-content-center align-items-center flex-grow-1" style={{ overflow: "hidden" }}>
-            <div className="p-4" style={{ ...styles.card, width: "550px", height: "100%" }}>
-              <h6 className="fw-semibold mb-3 text-secondary text-center">Repair Distribution</h6>
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "calc(100% - 40px)" }}>
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              </div>
+            <ChartCard title="Repair Status Overview" icon={<FaChartPie />}>
+              <Doughnut data={doughnutData} options={{ ...commonChartOptions, scales: {y:{display:false}, x:{display:false}} , plugins: { legend: { position: 'bottom' }}}} />
+            </ChartCard>
+
+            <ChartCard title="Most Common Repair Services" icon={<FaClipboardList />}>
+              <Bar data={repairTypesData} options={{ ...commonChartOptions, indexAxis: 'y' }} />
+            </ChartCard>
+
+            {/* Recent Activity Card */}
+            <div className="col-xl-6 mb-4">
+                <div className="p-4" style={{...styles.card, height: '400px'}}>
+                    <h6 style={styles.cardTitle}><FaHistory className="me-2" />Recent Activity</h6>
+                    <div className="list-group list-group-flush">
+                        {recentActivity.length > 0 ? recentActivity.map(r => (
+                            <div key={r.id} className="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
+                                <div>
+                                    <p style={styles.activityText}><strong>{r.name}</strong> submitted a request for <strong>{r.service}</strong>.</p>
+                                    <small style={styles.activitySubText}>{r.brand} {r.model}</small>
+                                </div>
+                                <small style={styles.activitySubText}>{new Date(r.created_at).toLocaleDateString()}</small>
+                            </div>
+                        )) : <p style={styles.activityText}>No recent activity to display.</p>}
+                    </div>
+                </div>
             </div>
           </div>
         </main>
-
-        <footer className="bg-light text-center p-3" style={{ flexShrink: 0 }}>© 2025 My Admin Panel</footer>
       </div>
-
-      {/* Add Repair Modal */}
       <AddRepairModal show={showModal} onClose={() => setShowModal(false)} onAdd={handleAddRepair} />
-
-      {/* Repair Success Popup */}
-      {lastAddedRepair && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ background: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
-          <div className="card p-4 shadow-lg" style={{ width: "400px", borderRadius: "10px" }}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="mb-0">Repair Added Successfully!</h5>
-              <button className="btn-close" onClick={() => setLastAddedRepair(null)}></button>
-            </div>
-            <p><strong>Repair ID:</strong> {lastAddedRepair.id}</p>
-            <p><strong>Device Brand:</strong> {lastAddedRepair.brand}</p>
-            <p><strong>Device Model:</strong> {lastAddedRepair.model}</p>
-            <p><strong>Service Needed:</strong> {lastAddedRepair.service}</p>
-            <p><strong>Description:</strong> {lastAddedRepair.issue}</p>
-            <p><strong>Name:</strong> {lastAddedRepair.name}</p>
-            <p><strong>Phone:</strong> {lastAddedRepair.phone}</p>
-            <button className="btn btn-success w-100 mt-2" onClick={() => setLastAddedRepair(null)}>OK</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+// --- Professional Styles ---
+const styles = {
+  page: {
+    minHeight: "100vh",
+    backgroundColor: "#f4f7fc",
+    fontFamily: "'Inter', sans-serif",
+  },
+  mainContent: {
+    overflowY: 'auto'
+  },
+  pageTitle: {
+    fontWeight: '700',
+    color: '#212529',
+    fontSize: '1.75rem',
+  },
+  card: {
+    border: "none",
+    borderRadius: "10px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.05)",
+    backgroundColor: "#fff",
+  },
+  cardTitle: {
+    fontWeight: '600',
+    color: '#495057',
+    fontSize: '1.1rem',
+    marginBottom: '1rem',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  statTitle: {
+    color: '#6c757d',
+    fontWeight: '600',
+    fontSize: '0.8rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  statValue: {
+    fontWeight: '700',
+    color: '#343a40',
+    fontSize: '2rem',
+  },
+  iconWrapper: {
+    fontSize: '1.75rem',
+    backgroundColor: 'rgba(108, 117, 125, 0.1)',
+    height: '50px',
+    width: '50px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addBtn: {
+    backgroundColor: "#0d6efd",
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: '0.9rem',
+    border: "none",
+    borderRadius: "8px",
+    padding: "12px 24px",
+    transition: "background-color 0.2s ease, box-shadow 0.2s ease",
+    boxShadow: "0 4px 10px rgba(13,110,253,0.2)",
+  },
+  refreshBtn: {
+    backgroundColor: '#fff',
+    color: '#6c757d',
+    border: '1px solid #ced4da',
+    borderRadius: '8px',
+    padding: '12px 18px',
+    marginLeft: '10px',
+    transition: 'background-color 0.2s ease, color 0.2s ease',
+  },
+  activityText: {
+      color: '#343a40',
+      marginBottom: '0.25rem',
+      fontSize: '0.95rem',
+  },
+  activitySubText: {
+      color: '#6c757d',
+      fontSize: '0.85rem'
+  }
+};

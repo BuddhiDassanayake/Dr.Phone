@@ -40,14 +40,7 @@ export default function Sidebar() {
             <i className="bi bi-tools me-2"></i> Repairs
           </NavLink>
         </li>
-        <li className="nav-item">
-          <NavLink
-            to="/admin/customers"
-            className={({ isActive }) => `nav-link text-white ${isActive ? "active fw-bold text-success" : ""}`}
-          >
-            <i className="bi bi-people-fill me-2"></i> Customers
-          </NavLink>
-        </li>
+       
         <li>
           <a href="#" className="nav-link text-white" onClick={toggleSettings}>
             <i className="bi bi-gear-fill me-2"></i> Settings

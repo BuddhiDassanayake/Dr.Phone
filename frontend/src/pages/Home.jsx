@@ -3,180 +3,183 @@ import "../home.css";
 import "../index.css";
 import RepairTrackingModal from "../components/RepairTrackingModal";
 
-
-// Features array
 const features = [
   {
-    title: "Trusted Professionals",
-    description: "We have certified technicians ready to help.",
-    img: "img2.avif",
+    icon: "bi bi-shield-check",
+    title: "Certified Technicians",
+    description: "Your device is handled by accredited experts who ensure quality repairs.",
   },
   {
-    title: "Quick Turnaround",
-    description: "Most repairs done in under 24 hours.",
-    img: "img3.jpg",
+    icon: "bi bi-lightning-charge-fill",
+    title: "Same-Day Service",
+    description: "We prioritize speed and efficiency to get your device back to you quickly.",
   },
   {
-    title: "Free Diagnostics",
-    description: "We check your device for free before repair.",
-    img: "img4.png",
+    icon: "bi bi-gem",
+    title: "Premium Parts",
+    description: "We use only the highest quality parts, backed by our comprehensive warranty.",
+  },
+];
+
+const howItWorksSteps = [
+    {
+        icon: "bi bi-card-text",
+        title: "1. Get a Free Quote",
+        description: "Tell us what's wrong, and we'll provide an instant, no-obligation quote.",
+    },
+    {
+        icon: "bi bi-box-seam",
+        title: "2. Send Us Your Device",
+        description: "Easily mail in your device or drop it off at one of our convenient locations.",
+    },
+    {
+        icon: "bi bi-tools",
+        title: "3. We'll Fix It Fast",
+        description: "Our experts will diagnose and repair your device, keeping you updated.",
+    },
+];
+
+const repairServices = [
+  { name: "Screen Replacement", img: "/img5.jpeg" },
+  { name: "Battery Replacement", img: "/img6.jpeg" },
+  { name: "Motherboard Logic", img: "/img7.jpeg" },
+  { name: "Water Damage Repair", img: "/img10.jpeg" },
+  { name: "Camera & Lenses", img: "/img11.jpeg" },
+  { name: "Charging Port Fix", img: "/img12.jpg" },
+];
+
+const testimonials = [
+  {
+    name: "Samantha R.",
+    feedback: "The service was incredibly fast and professional. My phone screen is perfect now. I can't recommend them enough!",
+    img: "/img8.jpeg",
+  },
+  {
+    name: "Mike Chen",
+    feedback: "A truly reliable and honest repair shop. They fixed my laptop's motherboard when others said it was impossible.",
+    img: "/img8.jpeg",
   },
 ];
 
 export default function Home() {
   return (
     <>
-      {/* Hero Section */}
-      <section id="home" className="py-5 hero  ">
+      <section id="home" className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">Expert Repairs for Your Mobile Phones.</h1>
+          <p className="hero-subtitle">
+            Fast, reliable, and professional service for all your mobile Phones.
+          </p>
+          <button
+            className="btn btn-accent btn-lg rounded-pill shadow-lg"
+            data-bs-toggle="modal"
+            data-bs-target="#repairTrackingModal"
+          >
+            Track My Repair Status
+          </button>
+        </div>
+      </section>
+
+      <section className="site-section">
         <div className="container">
-          <div className="row align-items-center">
-            <div className="col-md-6 text-start">
-              <h1 className="fw-bold">Your One-Stop Solution for Mobile Repairs</h1>
-              <p className="lead text-secondary">Fast, Fair, Reliable</p>
-            <a
-  href="#"
-  className="btn btn-success btn-lg rounded-pill text-white shadow-lg"
-  data-bs-toggle="modal"
-  data-bs-target="#repairTrackingModal"
->
-  Repair Tracking
-</a>
-
-
-            </div>
-            <div className="col-md-6 text-center"></div>
+          <h2 className="section-heading">The Gold Standard in Device Repair</h2>
+          <div className="row g-5 text-center">
+            {features.map((feature, index) => (
+              <div key={index} className="col-md-4">
+                <div className="feature-card">
+                  <div className="feature-icon">{feature.icon && <i className={feature.icon}></i>}</div>
+                  <h5 className="feature-title">{feature.title}</h5>
+                  <p className="feature-description">{feature.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-      
 
-      {/* Features Grid */}
-      <section id="home" className="features-section">
-        <h2 className="features-title">Our Features</h2>
-        <div className="features-grid">
-          {features.map((feature, index) => (
-            <div key={index} className="feature-box">
-              <img
-                src={feature.img}
-                alt={feature.title}
-                className="img-fluid mb-3"
-                style={{ maxHeight: "100px", objectFit: "contain" }}
-              />
-              <h5 className="feature-title">{feature.title}</h5>
-              <p className="feature-description">{feature.description}</p>
-            </div>
-          ))}
+      <section className="site-section bg-light">
+          <div className="container">
+              <h2 className="section-heading">Our Simple 3-Step Process</h2>
+              <div className="row g-5">
+                  {howItWorksSteps.map((step, index) => (
+                      <div key={index} className="col-md-4">
+                          <div className="step-card">
+                              <div className="step-icon">{step.icon && <i className={step.icon}></i>}</div>
+                              <h5 className="step-title">{step.title}</h5>
+                              <p className="step-description">{step.description}</p>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      </section>
+
+      <section id="services" className="site-section">
+        <div className="container">
+          <h2 className="section-heading">Repairs for Every Major Issue</h2>
+          <div className="row g-4">
+            {repairServices.map((service, index) => (
+              <div key={index} className="col-md-4 col-sm-6">
+                <div className="service-card">
+                  <img src={service.img} alt={service.name} className="service-img" />
+                  <div className="service-overlay">
+                    <h5 className="service-name">{service.name}</h5>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Repairs Section */}
-     <section id="services" className="features-section pb-5" >
-  <h2 className="features-title">All kinds of repairs. For real.</h2>
-  <div className="features-grid">
-    {[
-      { name: "Screen Replacement", img: "img5.jpeg" },
-      { name: "Battery Replacement", img: "img6.jpeg" },
-      { name: "Motherboard Repair", img: "img7.jpeg" },
-      { name: "Water Damage Repair", img: "img10.jpeg" },
-      { name: "Camera Replacement", img: "img11.jpeg" },
-      { name: "Charging Port Repair", img: "img12.jpg" }
-    ].map((repair, index) => (
-      <div key={index} className="feature-box text-center">
-        <img
-          src={repair.img}
-          alt={repair.name}
-          className="img-fluid mb-3"
-          style={{ maxHeight: "150px", objectFit: "contain" }}
-        />
-        <h5 className="feature-title">{repair.name}</h5>
-      </div>
-    ))}
-  </div>
-</section>
+      <section id="testimonials" className="site-section bg-light">
+        <div className="container">
+          <h2 className="section-heading">Trusted by Customers Like You</h2>
+          <div className="row g-4 justify-content-center">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="col-md-6">
+                <div className="testimonial-card">
+                  <i className="bi bi-quote testimonial-quote-icon"></i>
+                  <p className="testimonial-feedback">"{testimonial.feedback}"</p>
+                  <div className="testimonial-author">
+                    <img src={testimonial.img} alt={testimonial.name} className="testimonial-img" />
+                    <span className="testimonial-name">{testimonial.name}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-
-      {/* Testimonials Section */}
-     <section id="about" className="features-section py-5" style={{  color: '#fff' }}>
-  <div className="container">
-    <h2 className="features-title text-center mb-5">What Our Customers Say</h2>
-
-    <div className="row g-4 justify-content-center">
-      {[
-        { name: "John Doe", rating: 5, feedback: "Great service! My phone feels brand new.", img: "/img8.jpeg" },
-        { name: "Lisa Ray", rating: 5, feedback: "Quick and affordable repair. Highly recommended.", img: "/img8.jpeg" },
-        { name: "Mike Chen", rating: 5, feedback: "Professional team, great results!", img: "/img8.jpeg" },
-        { name: "Emma Watson", rating: 5, feedback: "Excellent customer support and fast repair.", img: "/img8.jpeg" },
-        { name: "David Lee", rating: 5, feedback: "Reliable service. I trust them with all my devices.", img: "/img8.jpeg" },
-      ].map((testimonial, index) => (
-        <div key={index} className="col-md-6 col-lg-4">
-          <div className="card text-center shadow-sm h-100" style={{ borderRadius: '15px' }}>
-            <img
-              src={testimonial.img}
-              alt={testimonial.name}
-              className="card-img-top mx-auto mt-3"
-              style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-            <div className="card-body">
-              <h5 className="card-title">{testimonial.name}</h5>
-              <p className="card-text">
-                {Array.from({ length: testimonial.rating }).map((_, i) => (
-                  <i key={i} className="bi bi-star-fill text-warning"></i>
-                ))}
+      <section id="contact" className="site-section">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-8 text-center">
+              <h2 className="section-heading">Have a Question? Get in Touch.</h2>
+              <p className="lead mb-5">
+                We're here to help. Fill out the form below, and our team will get back to you shortly.
               </p>
-              <p className="card-text fst-italic">"{testimonial.feedback}"</p>
+              <form className="contact-form">
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <input type="text" className="form-control" placeholder="Your Name" required />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <input type="email" className="form-control" placeholder="Your Email" required />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <textarea className="form-control" rows="6" placeholder="Your Message" required></textarea>
+                </div>
+                <button type="submit" className="btn btn-accent btn-lg w-100">Send Your Message</button>
+              </form>
             </div>
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
+      </section>
 
-
-      {/* Contact Form Section in Grid/Card Layout */}
-  <section  id="contact" className="features-section">
-  <div className="container py-5">
-    <h2 className="features-title text-center mb-4">Contact Us</h2>
-    <div className="row justify-content-center">
-      {/* Contact Form Card */}
-      <div className="col-12 col-md-10 col-lg-8">
-        <div className="card p-4 shadow-sm">
-          <form>
-            <div className="mb-3">
-              <label className="form-label">Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Your name"
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input
-                type="email"
-                className="form-control"
-                placeholder="Your email"
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Message</label>
-              <textarea
-                className="form-control"
-                rows="4"
-                placeholder="Your message"
-              ></textarea>
-            </div>
-            <button className="btn btn-primary w-100" type="submit">
-              Send
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<RepairTrackingModal />
-
+      <RepairTrackingModal />
     </>
   );
 }
