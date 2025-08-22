@@ -14,6 +14,8 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     phone: "",
   });
 
+  const [successData, setSuccessData] = useState(null); // ✅ To store success response
+
   if (!show) return null;
 
   const handleChange = (e) =>
@@ -25,9 +27,12 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     try {
       // Send form data to API
       const response = await axios.post("http://localhost:5000/api/repairs", form);
-      
+
       // Notify parent component about new repair
       onAdd(response.data);
+
+      // Store success data for popup
+      setSuccessData(response.data);
 
       // Reset form
       setForm({
@@ -41,14 +46,16 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
         phone: "",
       });
 
-      // Close modal
-      onClose();
-      
       console.log("Repair added:", response.data);
     } catch (error) {
       console.error("Error adding repair:", error);
       alert("Failed to submit repair. Please try again.");
     }
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccessData(null);
+    onClose();
   };
 
   return (
@@ -150,6 +157,30 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
           </div>
         </form>
       </div>
+
+      {/* ✅ Success Popup Card */}
+      {successData && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+          style={{ background: "rgba(0,0,0,0.5)", zIndex: 1100 }}
+        >
+          <div className="bg-white p-4 rounded-4 shadow-lg text-center"
+            style={{ width: "400px" }}
+          >
+            <h5 className="fw-bold text-success mb-3">✅ Repair Added Successfully!</h5>
+            <p><strong>Tracking ID:</strong> {successData.tracking_id}</p>
+            <p><strong>Brand:</strong> {successData.brand}</p>
+            <p><strong>Model:</strong> {successData.model}</p>
+            <p><strong>Service:</strong> {successData.service}</p>
+            <p><strong>Name:</strong> {successData.name}</p>
+            <p><strong>Phone:</strong> {successData.phone}</p>
+
+            <button className="btn btn-success mt-3 w-100" onClick={handleCloseSuccess}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
