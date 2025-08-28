@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Make sure you have axios installed: npm install axios
 
 export default function AdminLoginCard() {
   const [username, setUsername] = useState("");
@@ -7,15 +8,30 @@ export default function AdminLoginCard() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
 
-    // Check credentials (replace with real backend check later)
-    if (username === "admin" && password === "123") {
-      setError("");
-      navigate("/admin/dashboard"); // ✅ Redirect to Dashboard
-    } else {
-      setError("Invalid username or password");
+    try {
+      // Make a POST request to your backend's login endpoint
+      const response = await axios.post("http://localhost:3000/api/admin/login", {
+        username,
+        password,
+      });
+
+      // If login is successful (status 200 OK)
+      if (response.status === 200) {
+        // In a real app, you might store a token or user info here
+        navigate("/admin/dashboard"); // Redirect to Dashboard
+      }
+    } catch (err) {
+      // Handle errors from the backend (e.g., 401 Unauthorized)
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error); // Display error message from backend
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+      console.error("Login error:", err);
     }
   };
 
@@ -47,7 +63,7 @@ export default function AdminLoginCard() {
           </div>
           <button
             type="submit"
-            className="btn w-100" // `btn-success` was removed here
+            className="btn w-100"
             style={{
               backgroundColor: "#1ABC9C",
               borderColor: "#1ABC9C",
