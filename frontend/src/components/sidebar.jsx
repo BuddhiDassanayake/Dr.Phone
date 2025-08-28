@@ -40,40 +40,7 @@ export default function Sidebar() {
           </NavLink>
         </li>
         
-        <li>
-          <a href="#" className="nav-link" onClick={toggleSettings}>
-            <i className="bi bi-gear-fill"></i> Settings
-            <i className={`bi bi-chevron-down float-end ${isSettingsOpen ? 'rotate-180' : ''}`}></i>
-          </a>
-          <div className={`collapse ${isSettingsOpen ? 'show' : ''}`}>
-            <ul className="nav flex-column ms-3">
-              <li>
-                <NavLink
-                  to="/admin/settings/profile"
-                  className={({ isActive }) => `submenu-item nav-link ${isActive ? "active" : ""}`}
-                >
-                  Profile
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/settings/billing"
-                  className={({ isActive }) => `submenu-item nav-link ${isActive ? "active" : ""}`}
-                >
-                  Billing
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/settings/security"
-                  className={({ isActive }) => `submenu-item nav-link ${isActive ? "active" : ""}`}
-                >
-                  Security
-                </NavLink>
-              </li>
-            </ul>
-          </div>
-        </li>
+       
       </ul>
 
       <hr className="my-4 opacity-25" />

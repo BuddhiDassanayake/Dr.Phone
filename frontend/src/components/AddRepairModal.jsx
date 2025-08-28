@@ -25,7 +25,7 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     e.preventDefault();
 
     try {
-      // Send form data to API
+      // Send the form data to the backend API using Axios POST request
       const response = await axios.post("http://localhost:5000/api/repairs", form);
 
       // Notify parent component about new repair
@@ -53,6 +53,7 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     }
   };
 
+  // Handler to close the success popup and the main modal
   const handleCloseSuccess = () => {
     setSuccessData(null);
     onClose();
@@ -60,15 +61,18 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
 
   return (
     <div
+     // Styling for the modal backdrop
       className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
       style={{ background: "rgba(0,0,0,0.5)", zIndex: 1050 }}
     >
       <div
+      // Styling for the modal content card
         className="bg-white p-4 rounded-4 shadow-lg"
         style={{ width: "500px", maxWidth: "95%" }}
       >
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold mb-0">Book Your Repair</h4>
+          {/*Close Button */}
           <button className="btn-close" onClick={onClose}></button>
         </div>
 
@@ -148,12 +152,14 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
           </div>
 
           <div className="text-center mt-4">
+
             <button
               type="submit"
               className="btn btn-success fw-semibold w-100"
             >
               Add Repair
             </button>
+            
           </div>
         </form>
       </div>

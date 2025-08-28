@@ -13,16 +13,22 @@ import {
 // --- Main Dashboard Component ---
 export default function AdminDashboard() {
   // --- State Management ---
+  //to control the visibility of the AddRepairModal
   const [showModal, setShowModal] = useState(false);
+  // to store the list of repair jobs fetched from the API
   const [repairs, setRepairs] = useState([]);
+//to track whether data is currently being fetched
   const [loading, setLoading] = useState(true);
+//to hold any error messages that occur during the data fetch
   const [error, setError] = useState(null);
 
   // --- Data Fetching ---
+  // An asynchronous function to get the latest repair data from the server
   const fetchRepairs = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch data from the local API endpoint
       const response = await fetch("http://localhost:5000/api/repairs");
       if (!response.ok) throw new Error("Network response was not ok.");
       const data = await response.json();
@@ -40,6 +46,7 @@ export default function AdminDashboard() {
   }, []);
 
   // --- Memoized Data Calculations ---
+  //calculation will only re-run if the [repairs] array changes.
   const statusStats = useMemo(() => ({
     pending: repairs.filter(r => r.status === "Pending").length,
     inProgress: repairs.filter(r => r.status === "Ongoing").length,
@@ -47,6 +54,7 @@ export default function AdminDashboard() {
     total: repairs.length,
   }), [repairs]);
 
+//Calculates the data needed for the daily repairs Line chart
   const dailyRepairsData = useMemo(() => {
     const labels = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -54,6 +62,7 @@ export default function AdminDashboard() {
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }).reverse();
 
+   // Calculates data for the most common repairs Bar chart
     const data = Array(7).fill(0);
     repairs.forEach(repair => {
       const diffDays = Math.floor((new Date() - new Date(repair.created_at)) / (1000 * 60 * 60 * 24));
@@ -89,6 +98,7 @@ export default function AdminDashboard() {
     [repairs]
   );
   
+  //This section defines the data structures and options for the charts
   const doughnutData = {
     labels: ["Pending", "In Progress", "Completed"],
     datasets: [{
@@ -98,15 +108,18 @@ export default function AdminDashboard() {
     }],
   };
   
+  //Defines the specific data object for the Doughnut chart
   const commonChartOptions = {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true, grid: { drawBorder: false } }, x: { grid: { display: false } } },
   };
 
+   // This function will be passed to the AddRepairModal component
   const handleAddRepair = async (repairData) => { /* ... */ };
 
   // --- UI Components ---
+   // StatCard: A component to display a single statistic with a title, value, and icon
   const StatCard = ({ title, value, icon, color }) => (
     <div className="col">
       <div className="p-3 d-flex dashboard-card" style={{ borderLeft: `5px solid ${color}` }}>
@@ -120,7 +133,7 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
-
+// ChartCard: A wrapper component to provide a consistent frame for each chart
   const ChartCard = ({ title, icon, children }) => (
     <div className="col-xl-6 mb-4">
       <div className="p-4 dashboard-card" style={{ height: "400px" }}>
@@ -141,12 +154,17 @@ export default function AdminDashboard() {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h4 style={styles.pageTitle}>Dashboard</h4>
             <div>
+
+     {/*Add repair Button*/ }
               <button style={styles.addBtn} onClick={() => setShowModal(true)}>
                 <FaPlus className="me-2" />Add Repair
               </button>
+     {/*Refresh button, calls fetchrepairs function,fetch repair data from the backend*/}
+     
               <button style={styles.refreshBtn} onClick={fetchRepairs} disabled={loading}>
                 <FaSync className={loading ? 'fa-spin' : ''} />
               </button>
+
             </div>
           </div>
           
@@ -209,7 +227,7 @@ export default function AdminDashboard() {
   );
 }
 
-// --- Styles ---
+// --- Styles ---This section defines the component's styling using a JavaScript object
 const styles = {
   page: {
     minHeight: "100vh",
@@ -282,3 +300,4 @@ const styles = {
     fontSize: '0.85rem'
   }
 };
+
