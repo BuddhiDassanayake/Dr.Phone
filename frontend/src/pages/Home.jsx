@@ -3,6 +3,8 @@ import "../home.css";
 import "../index.css";
 import RepairTrackingModal from "../components/RepairTrackingModal";
 
+
+// Defines an array of features offered by the service
 const features = [
   {
     icon: "bi bi-shield-check",
@@ -21,6 +23,7 @@ const features = [
   },
 ];
 
+// Defines an array of steps explaining how the repair process works
 const howItWorksSteps = [
     {
         icon: "bi bi-card-text",
@@ -39,6 +42,7 @@ const howItWorksSteps = [
     },
 ];
 
+// Defines an array of repair services offered, including images
 const repairServices = [
   { name: "Screen Replacement", img: "/img5.jpeg" },
   { name: "Battery Replacement", img: "/img6.jpeg" },
@@ -48,6 +52,8 @@ const repairServices = [
   { name: "Charging Port Fix", img: "/img12.jpg" },
 ];
 
+
+// Defines an array of customer testimonials
 const testimonials = [
   {
     name: "Samantha R.",
@@ -70,10 +76,12 @@ export default function Home() {
           <p className="hero-subtitle">
             Fast, reliable, and professional service for all your mobile Phones.
           </p>
+
+           {/* Button to open the Repair Tracking Modal */}
           <button
             className="btn btn-accent btn-lg rounded-pill shadow-lg"
-            data-bs-toggle="modal"
-            data-bs-target="#repairTrackingModal"
+            data-bs-toggle="modal" // Bootstrap attribute to toggle a modal
+            data-bs-target="#repairTrackingModal"  // Targets the modal with this ID
           >
             Track My Repair Status
           </button>
@@ -84,6 +92,8 @@ export default function Home() {
         <div className="container">
           <h2 className="section-heading">The Gold Standard in Device Repair</h2>
           <div className="row g-5 text-center">
+            
+             {/* Maps through the 'features' array to render each feature card */}
             {features.map((feature, index) => (
               <div key={index} className="col-md-4">
                 <div className="feature-card">
@@ -97,10 +107,14 @@ export default function Home() {
         </div>
       </section>
 
+
+ {/* How It Works Section: Explains the repair process in simple steps */}
       <section className="site-section bg-light">
           <div className="container">
               <h2 className="section-heading">Our Simple 3-Step Process</h2>
               <div className="row g-5">
+
+                 {/* Maps through the 'howItWorksSteps' array to render each step card */}
                   {howItWorksSteps.map((step, index) => (
                       <div key={index} className="col-md-4">
                           <div className="step-card">
@@ -118,6 +132,8 @@ export default function Home() {
         <div className="container">
           <h2 className="section-heading">Repairs for Every Major Issue</h2>
           <div className="row g-4">
+            
+             {/* Maps through the 'repairServices' array to render each service card with an image */}
             {repairServices.map((service, index) => (
               <div key={index} className="col-md-4 col-sm-6">
                 <div className="service-card">
@@ -136,6 +152,8 @@ export default function Home() {
         <div className="container">
           <h2 className="section-heading">Trusted by Customers Like You</h2>
           <div className="row g-4 justify-content-center">
+            
+             {/* Maps through the 'testimonials' array to render each testimonial card */}
             {testimonials.map((testimonial, index) => (
               <div key={index} className="col-md-6">
                 <div className="testimonial-card">
@@ -179,6 +197,8 @@ export default function Home() {
         </div>
       </section>
 
+
+ {/* Renders the Repair Tracking Modal component outside of the main sections */}
       <RepairTrackingModal />
     </>
   );

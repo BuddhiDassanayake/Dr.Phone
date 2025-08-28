@@ -1,6 +1,7 @@
 // src/components/AddRepairModal.jsx
 import React, { useState } from "react";
 import axios from "axios";
+import config from "../config";
 
 export default function AddRepairModal({ show, onClose, onAdd }) {
   const [form, setForm] = useState({
@@ -26,7 +27,7 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
 
     try {
       // Send the form data to the backend API using Axios POST request
-      const response = await axios.post("http://localhost:5000/api/repairs", form);
+      const response = await axios.post(`${config.apiBaseUrl}/repairs`, form);
 
       // Notify parent component about new repair
       onAdd(response.data);

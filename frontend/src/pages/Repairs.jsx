@@ -4,9 +4,10 @@ import axios from "axios";
 import { Clock, Loader, CheckCircle, XCircle } from 'lucide-react';
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import config from "../config";
 
 // --- Configuration ---
-const API_URL = "http://localhost:5000/api/repairs"; // Your backend server URL
+const API_URL = `${config.apiBaseUrl}/repairs`; // Your backend server URL
 
 // --- Status Component ---
 // A dedicated component to display the status with icons and colors

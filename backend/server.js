@@ -1,5 +1,5 @@
 // server.js
-
+const PORT = 3000;
 // Import dependencies
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
@@ -50,6 +50,7 @@ app.get("/api/repairs", (req, res) => {
     res.json(rows);
   });
 });
+
 
 // POST a new repair
 app.post("/api/repairs", (req, res) => {
@@ -117,5 +118,5 @@ app.delete("/api/repairs/:id", (req, res) => {
 });
 
 // Start server
-const PORT = 5000;
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,21 +1,26 @@
 // src/components/RepairTrackingModal.jsx
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react"; //for managing component state
+import axios from "axios"; //for making http requests to the backend
 import { CheckCircle, Clock, XCircle, Loader } from "lucide-react";
 
+import config from "../config";
+
 export default function RepairTrackingModal() {
-  const [trackingId, setTrackingId] = useState("");
-  const [trackingInfo, setTrackingInfo] = useState(null);
+  const [trackingId, setTrackingId] = useState(""); //store the tracking ID entered by the user
+  const [trackingInfo, setTrackingInfo] = useState(null); //Stores the repair detail fetched from the API
   const [error, setError] = useState("");
 
+
+  //to handle the tracking submission
   const handleTrack = async (e) => {
     e.preventDefault();
     setError("");
     setTrackingInfo(null);
 
     try {
+      //Make the GET req to the backend API to fetch repair details
       const response = await axios.get(
-        `http://localhost:5000/api/repairs/track/${trackingId}`
+        `${config.apiBaseUrl}/repairs/track/${trackingId}`
       );
       setTrackingInfo(response.data);
     } catch (err) {
@@ -61,7 +66,7 @@ export default function RepairTrackingModal() {
 
   return (
     <div
-      className="modal fade"
+      className="modal fade"  // Bootstrap classes for a modal with a fade animation
       id="repairTrackingModal"
       tabIndex="-1"
       aria-hidden="true"
@@ -70,6 +75,7 @@ export default function RepairTrackingModal() {
         <div className="modal-content shadow-lg">
           <div className="modal-header">
             <h5 className="modal-title">Track Your Repair</h5>
+          
             <button
               type="button"
               className="btn-close"
@@ -78,23 +84,28 @@ export default function RepairTrackingModal() {
           </div>
 
           <div className="modal-body">
-            <form onSubmit={handleTrack}>
+            <form onSubmit={handleTrack}>   {/* Form for tracking ID input */}
               <div className="mb-3">
                 <label className="form-label">Enter Tracking ID</label>
                 <input
                   type="text"
-                  className="form-control"
-                  value={trackingId}
+                  className="form-control"  // Bootstrap form control style
+                  value={trackingId}  
                   onChange={(e) => setTrackingId(e.target.value)}
                   placeholder="e.g. ABC123"
                   required
                 />
               </div>
+
+
               <button className="btn btn-success w-100" type="submit">
                 Track
               </button>
+
+
             </form>
 
+{/* Conditional rendering for error messages */}
             {error && (
               <div className="alert alert-danger mt-3" role="alert">
                 {error}
