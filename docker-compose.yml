@@ -1,0 +1,30 @@
+
+
+services:
+  backend:
+    build: ./backend
+    container_name: drphone_backend
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data         # persist sqlite database here
+    environment:
+      - NODE_ENV=production
+    expose:
+      - "3000"
+    networks:
+      - drnet
+
+  frontend:
+    build: ./frontend
+    container_name: drphone_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    networks:
+      - drnet
+
+networks:
+  drnet:
+    driver: bridge

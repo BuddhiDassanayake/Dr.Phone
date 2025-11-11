@@ -15,7 +15,7 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     phone: "",
   });
 
-  const [successData, setSuccessData] = useState(null); // ✅ To store success response
+  const [successData, setSuccessData] = useState(null); // To store success response
 
   if (!show) return null;
 
@@ -165,7 +165,7 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
         </form>
       </div>
 
-      {/* ✅ Success Popup Card */}
+      {/*  Success Popup Card */}
       {successData && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Clock, Loader, CheckCircle, XCircle } from 'lucide-react';
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/sidebar";
 import Topbar from "../components/Topbar";
 import config from "../config";
 

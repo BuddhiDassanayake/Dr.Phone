@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/sidebar";
 import Topbar from "../components/Topbar";
 import { Doughnut, Line, Bar } from "react-chartjs-2";
 import "chart.js/auto";
@@ -11,19 +11,28 @@ import {
 } from "react-icons/fa";
 import config from "../config";
 
-// --- Main Dashboard Component ---
+
 export default function AdminDashboard() {
-  // --- State Management ---
-  //to control the visibility of the AddRepairModal
+  
+
+
+  //Keeps track of whether the AddRepairModal is open or closed.
   const [showModal, setShowModal] = useState(false);
-  // to store the list of repair jobs fetched from the API
+
+
+  //Stores the list of repair jobs fetched from the API.
   const [repairs, setRepairs] = useState([]);
-//to track whether data is currently being fetched
+
+
+//Keeps track of whether data is still being fetched.
   const [loading, setLoading] = useState(true);
-//to hold any error messages that occur during the data fetch
+
+
+//Stores any error message if the API fails.
   const [error, setError] = useState(null);
 
   // --- Data Fetching ---
+  
   // An asynchronous function to get the latest repair data from the server
   const fetchRepairs = async () => {
     setLoading(true);

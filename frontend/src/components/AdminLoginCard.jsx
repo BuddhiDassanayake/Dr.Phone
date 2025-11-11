@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Make sure you have axios installed: npm install axios
+import config from "../config";
 
 export default function AdminLoginCard() {
   const [username, setUsername] = useState("");
@@ -14,7 +15,7 @@ export default function AdminLoginCard() {
 
     try {
       // Make a POST request to your backend's login endpoint
-      const response = await axios.post("http://localhost:3000/api/admin/login", {
+      const response = await axios.post(`${config.apiBaseUrl}/admin/login`, {
         username,
         password,
       });
