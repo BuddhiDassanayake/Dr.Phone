@@ -20,7 +20,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
                         # Build frontend Docker image
-                        docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./client
+                        docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./frontend
 
                         # Login and push
                         echo "$PASS" | docker login -u "$USER" --password-stdin
@@ -36,7 +36,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
                         # Build backend Docker image
-                        docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./server
+                        docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./backend
 
                         # Login and push
                         echo "$PASS" | docker login -u "$USER" --password-stdin
