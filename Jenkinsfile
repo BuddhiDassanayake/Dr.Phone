@@ -2,63 +2,47 @@ pipeline {
     agent any
 
     environment {
-        // Jenkins Docker Hub credentials ID
         DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
         DOCKERHUB_USERNAME = 'buddhi2002'
     }
 
     stages {
-        // 1. Clone GitHub repository
-        stage('Clone Repository') {
+        stage('Clone Repo') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/BuddhiDassanayake/Dr.Phone.git',
                     credentialsId: 'github-token'
-
-                // Verify clone
-                sh 'echo "Repository cloned successfully!"'
-                sh 'ls -l'
             }
         }
 
-        // 2. Build Frontend Docker image
-        stage('Build Frontend Docker Image') {
+        stage('Build & Push Frontend') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./frontend"
+                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        # Build frontend Docker image
+                        docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./client
+
+                        # Login and push
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        docker push ${DOCKERHUB_USERNAME}/drphone-frontend:latest
+                        docker logout
+                    '''
                 }
             }
         }
 
-        // 3. Build Backend Docker image
-        stage('Build Backend Docker Image') {
+        stage('Build & Push Backend') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./backend"
-                }
-            }
-        }
+                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        # Build backend Docker image
+                        docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./server
 
-        // 4. Push Frontend Docker image
-        stage('Push Frontend Docker Image') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh "docker push ${DOCKERHUB_USERNAME}/drphone-frontend:latest"
-                    }
-                }
-            }
-        }
-
-        // 5. Push Backend Docker image
-        stage('Push Backend Docker Image') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh "docker push ${DOCKERHUB_USERNAME}/drphone-backend:latest"
-                    }
+                        # Login and push
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        docker push ${DOCKERHUB_USERNAME}/drphone-backend:latest
+                        docker logout
+                    '''
                 }
             }
         }
