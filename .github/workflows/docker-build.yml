@@ -1,6 +1,5 @@
 name: Build and Push Docker Images
 
-# Trigger workflow on push to main branch
 on:
   push:
     branches:
@@ -15,30 +14,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Log in to Docker Hub securely using secrets
+      # 2. Log in to Docker Hub
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # 3. Build and push Frontend image
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v4
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v6
         with:
-          context: ./frontend               # Path to your frontend directory
-          file: ./frontend/Dockerfile       # Path to your frontend Dockerfile
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/drphone-frontend:latest
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/drphone-frontend:latest
           cache-to: type=inline
 
       # 4. Build and push Backend image
-      - name: Build and push Backend
-        uses: docker/build-push-action@v4
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v6
         with:
-          context: ./backend                # Path to your backend directory
-          file: ./backend/Dockerfile       # Path to your backend Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/drphone-backend:latest
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/drphone-backend:latest
