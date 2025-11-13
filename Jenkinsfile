@@ -25,7 +25,7 @@ pipeline {
         stage('Build Frontend Docker Image') {
             steps {
                 script {
-                    sh "sudo docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./frontend"
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./frontend"
                 }
             }
         }
@@ -34,7 +34,7 @@ pipeline {
         stage('Build Backend Docker Image') {
             steps {
                 script {
-                    sh "sudo docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./backend"
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./backend"
                 }
             }
         }
@@ -44,8 +44,8 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh "echo $PASS | sudo docker login -u $USER --password-stdin"
-                        sh "sudo docker push ${DOCKERHUB_USERNAME}/drphone-frontend:latest"
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push ${DOCKERHUB_USERNAME}/drphone-frontend:latest"
                     }
                 }
             }
@@ -56,8 +56,8 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh "echo $PASS | sudo docker login -u $USER --password-stdin"
-                        sh "sudo docker push ${DOCKERHUB_USERNAME}/drphone-backend:latest"
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push ${DOCKERHUB_USERNAME}/drphone-backend:latest"
                     }
                 }
             }
