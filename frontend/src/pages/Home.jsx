@@ -8,7 +8,7 @@ import RepairTrackingModal from "../components/RepairTrackingModal";
 const features = [
   {
     icon: "bi bi-shield-check",
-    title: "Certified Technicians",
+    title: "Certified Technicians3",
     description: "Your device is handled by accredited experts who ensure quality repairs.",
   },
   {
