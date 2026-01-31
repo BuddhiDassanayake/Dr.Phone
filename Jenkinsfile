@@ -1,56 +1,102 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
-        DOCKERHUB_USERNAME = 'buddhi2002'
-    }
+environment {
+    EC2_HOST = "ubuntu@34.194.249.13"
+    SSH_KEY_ID = "ec2-ssh-key"
+    FRONTEND_IMAGE = "buddhi2002/drphone-frontend:latest"
+    BACKEND_IMAGE = "buddhi2002/drphone-backend:latest"
+}
 
     stages {
+
         stage('Clone Repo') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/BuddhiDassanayake/Dr.Phone.git',
-                    credentialsId: 'github-token'
+                echo "🔄 Stage: Clone Repo - Pulling code from GitHub"
+                git branch: 'main', 
+                    url: 'https://github.com/BuddhiDassanayake/Dr.Phone.git', 
+                    credentialsId: 'git-PAT'
+                echo "✅ Code cloned successfully"
             }
         }
 
-        stage('Build & Push Frontend') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                        # Build frontend Docker image
-                        docker build -t ${DOCKERHUB_USERNAME}/drphone-frontend:latest ./frontend
+stage('Build Frontend Docker Image') {
+    steps {
+        echo "🛠 Building Frontend Docker Image"
+        sh "docker build -t $FRONTEND_IMAGE ./frontend"
+        echo "✅ Frontend image built"
+    }
+}
 
-                        # Login and push
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
-                        docker push ${DOCKERHUB_USERNAME}/drphone-frontend:latest
-                        docker logout
-                    '''
-                }
-            }
-        }
+stage('Build Backend Docker Image') {
+    steps {
+        echo "🛠 Building Backend Docker Image"
+        sh "docker build -t $BACKEND_IMAGE ./backend"
+        echo "✅ Backend image built"
+    }
+}
 
-        stage('Build & Push Backend') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                        # Build backend Docker image
-                        docker build -t ${DOCKERHUB_USERNAME}/drphone-backend:latest ./backend
-
-                        # Login and push
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
-                        docker push ${DOCKERHUB_USERNAME}/drphone-backend:latest
-                        docker logout
-                    '''
-                }
-            }
+stage('Push Frontend Docker Image') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh '''
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                docker push $FRONTEND_IMAGE
+            '''
         }
     }
+}
+
+stage('Push Backend Docker Image') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh '''
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                docker push $BACKEND_IMAGE
+            '''
+        }
+    }
+}
+
+        stage('Test SSH Connection') {
+            steps {
+                echo "🔑 Stage: Test SSH Connection to EC2"
+                sshagent([SSH_KEY_ID]) {
+                    sh "ssh -o StrictHostKeyChecking=no $EC2_HOST 'echo SSH connection to EC2 works!'"
+                }
+                echo "✅ SSH connection test passed"
+            }
+        }
+
+   stage('Deploy on EC2') {
+    steps {
+        echo "🚀 Deploying Frontend & Backend on EC2"
+        sshagent([SSH_KEY_ID]) {
+            sh """
+            ssh -o StrictHostKeyChecking=no $EC2_HOST '
+                echo "📥 Pulling frontend image $FRONTEND_IMAGE" &&
+                docker pull $FRONTEND_IMAGE &&
+                echo "📥 Pulling backend image $BACKEND_IMAGE" &&
+                docker pull $BACKEND_IMAGE &&
+                cd /home/ubuntu/Dr.Phone &&
+                echo "🛠 Stopping existing containers" &&
+                docker-compose down &&
+                echo "📦 Starting containers" &&
+                docker-compose up -d &&
+                echo "✅ Deployment completed"
+            '
+            """
+        }
+    }
+}
+
 
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo "🎉 Pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs for errors."
         }
     }
 }

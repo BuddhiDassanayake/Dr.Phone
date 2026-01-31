@@ -8,7 +8,7 @@ import RepairTrackingModal from "../components/RepairTrackingModal";
 const features = [
   {
     icon: "bi bi-shield-check",
-    title: "Certified Technicians3",
+    title: "Certified Technicians",
     description: "Your device is handled by accredited experts who ensure quality repairs.",
   },
   {
@@ -28,7 +28,7 @@ const howItWorksSteps = [
     {
         icon: "bi bi-card-text",
         title: "1. Get Quotation",
-        description: "Tell us the issue with your device, and we'll provide you with a free. ",
+        description: "Tell us the issue with your device, and we'll provide you with a free.... ",
     },
     {
         icon: "bi bi-box-seam",
