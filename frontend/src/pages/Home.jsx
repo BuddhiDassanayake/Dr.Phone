@@ -128,7 +128,7 @@ export default function Home() {
             <span>Trusted by 10,000+ Customers</span>
           </div>
           <h1 className="hero-title">
-            Expert Repairs for Your <span className="text-gradient">All Mobile Devices</span>
+            Expert Repairs for Your <span className="text-gradient"> Mobile Devices</span>
           </h1>
           <p className="hero-subtitle">
             Fast, reliable, and professional service for all your mobile phones. 
