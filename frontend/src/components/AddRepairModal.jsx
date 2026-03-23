@@ -1,7 +1,17 @@
-// src/components/AddRepairModal.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import config from "../config";
+
+const BRANDS = ["Apple", "Samsung", "Huawei", "Xiaomi", "Oppo", "Vivo", "Google", "Other"];
+const MODELS = ["iPhone 15 Pro", "iPhone 14", "S24 Ultra", "S23", "Pixel 8", "Note 13 Pro", "Other"];
+const SERVICES = [
+  "Screen Replacement", 
+  "Battery Replacement", 
+  "Charging Port Repair", 
+  "Water Damage", 
+  "Software/Unlocking", 
+  "Motherboard Repair"
+];
 
 export default function AddRepairModal({ show, onClose, onAdd }) {
   const [form, setForm] = useState({
@@ -9,13 +19,14 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
     model: "",
     service: "",
     issue: "",
-    date: "",
-    time: "",
+    date: new Date().toISOString().split("T")[0],
+    time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     name: "",
     phone: "",
   });
 
-  const [successData, setSuccessData] = useState(null); // To store success response
+  const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   if (!show) return null;
 
@@ -24,168 +35,115 @@ export default function AddRepairModal({ show, onClose, onAdd }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      // Send the form data to the backend API using Axios POST request
       const response = await axios.post(`${config.apiBaseUrl}/repairs`, form);
-
-      // Notify parent component about new repair
       onAdd(response.data);
-
-      // Store success data for popup
       setSuccessData(response.data);
-
-      // Reset form
+      
       setForm({
-        brand: "",
-        model: "",
-        service: "",
-        issue: "",
-        date: "",
-        time: "",
-        name: "",
-        phone: "",
+        brand: "", model: "", service: "", issue: "",
+        date: new Date().toISOString().split("T")[0],
+        time: "", name: "", phone: "",
       });
-
-      console.log("Repair added:", response.data);
     } catch (error) {
-      console.error("Error adding repair:", error);
-      alert("Failed to submit repair. Please try again.");
+      alert("Error: Could not save repair.");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  // Handler to close the success popup and the main modal
-  const handleCloseSuccess = () => {
-    setSuccessData(null);
-    onClose();
   };
 
   return (
     <div
-     // Styling for the modal backdrop
       className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-      style={{ background: "rgba(0,0,0,0.5)", zIndex: 1050 }}
+      style={{ background: "rgba(15, 23, 42, 0.9)", zIndex: 1050, backdropFilter: "blur(12px)" }}
     >
-      <div
-      // Styling for the modal content card
-        className="bg-white p-4 rounded-4 shadow-lg"
-        style={{ width: "500px", maxWidth: "95%" }}
-      >
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h4 className="fw-bold mb-0">Book Your Repair</h4>
-          {/*Close Button */}
-          <button className="btn-close" onClick={onClose}></button>
+      {!successData ? (
+        <div className="bg-white rounded-4 shadow-lg border-0 overflow-hidden" 
+             style={{ width: "580px", maxWidth: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+          
+          {/* Header - Fixed */}
+          <div className="bg-primary p-4 text-white d-flex justify-content-between align-items-center">
+            <h4 className="fw-bold mb-0">🛠️ New Repair Ticket</h4>
+            <button className="btn-close btn-close-white" onClick={onClose}></button>
+          </div>
+
+          {/* Form Content - Scrollable */}
+          <form onSubmit={handleSubmit} className="p-4 bg-light overflow-auto">
+            <div className="row g-3 mb-4">
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Brand</label>
+                <select name="brand" className="form-select border-0 shadow-sm py-2" value={form.brand} onChange={handleChange} required>
+                  <option value="">Select Brand</option>
+                  {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Model</label>
+                <select name="model" className="form-select border-0 shadow-sm py-2" value={form.model} onChange={handleChange} required>
+                  <option value="">Select Model</option>
+                  {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label small fw-bold text-muted text-uppercase">Service Required</label>
+              <select name="service" className="form-select border-0 shadow-sm py-2" value={form.service} onChange={handleChange} required>
+                <option value="">Choose Service...</option>
+                {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <div className="row g-3 mb-4">
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Date</label>
+                <input type="date" name="date" className="form-control border-0 shadow-sm" value={form.date} onChange={handleChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Time</label>
+                <input type="time" name="time" className="form-control border-0 shadow-sm" value={form.time} onChange={handleChange} required />
+              </div>
+            </div>
+
+            <div className="row g-3 mb-4 border-top pt-4">
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Customer Name</label>
+                <input type="text" name="name" className="form-control border-0 shadow-sm py-2" placeholder="Full Name" value={form.name} onChange={handleChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label small fw-bold text-muted text-uppercase">Phone Number</label>
+                <input type="tel" name="phone" className="form-control border-0 shadow-sm py-2" placeholder="07XXXXXXXX" value={form.phone} onChange={handleChange} required />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label small fw-bold text-muted text-uppercase">Issue Description</label>
+              <textarea name="issue" className="form-control border-0 shadow-sm" rows="3" placeholder="Describe the fault..." value={form.issue} onChange={handleChange} required></textarea>
+            </div>
+
+            <button type="submit" disabled={loading} className="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow text-uppercase">
+              {loading ? "SAVING..." : "CONFIRM REPAIR JOB"}
+            </button>
+          </form>
         </div>
+      ) : (
+        /* HIGHLIGHTED TRACKING ID SCREEN */
+        <div className="bg-white rounded-5 shadow-lg p-5 text-center animate__animated animate__zoomIn" style={{ width: "450px" }}>
+          <div className="display-1 text-success mb-3">✅</div>
+          <h2 className="fw-black text-dark">JOB SAVED</h2>
+          <p className="text-muted">Customer: <strong>{successData.name}</strong></p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="row g-3 mb-3">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Device Brand *</label>
-              <input
-                type="text"
-                name="brand"
-                value={form.brand}
-                onChange={handleChange}
-                className="form-control"
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Device Model *</label>
-              <input
-                type="text"
-                name="model"
-                value={form.model}
-                onChange={handleChange}
-                className="form-control"
-                required
-              />
-            </div>
+          <div className="my-4 py-4 px-2 rounded-4" style={{ background: "#f8fafc", border: "3px dashed #cbd5e1" }}>
+            <span className="text-primary small fw-bold text-uppercase d-block mb-2">Tracking Number</span>
+            <h1 className="display-3 fw-bold text-dark font-monospace mb-0" style={{ letterSpacing: "4px" }}>
+              {successData.tracking_id}
+            </h1>
           </div>
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Service Needed *</label>
-            <input
-              type="text"
-              name="service"
-              value={form.service}
-              onChange={handleChange}
-              className="form-control"
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Describe the Issue *</label>
-            <textarea
-              name="issue"
-              value={form.issue}
-              onChange={handleChange}
-              className="form-control"
-              rows="3"
-              required
-            ></textarea>
-          </div>
-
-          <div className="row g-3 mb-3">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Your Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="form-control"
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Phone Number *</label>
-              <input
-                type="text"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                className="form-control"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="text-center mt-4">
-
-            <button
-              type="submit"
-              className="btn btn-success fw-semibold w-100"
-            >
-              Add Repair
-            </button>
-            
-          </div>
-        </form>
-      </div>
-
-      {/*  Success Popup Card */}
-      {successData && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-          style={{ background: "rgba(0,0,0,0.5)", zIndex: 1100 }}
-        >
-          <div className="bg-white p-4 rounded-4 shadow-lg text-center"
-            style={{ width: "400px" }}
-          >
-            <h5 className="fw-bold text-success mb-3">✅ Repair Added Successfully!</h5>
-            <p><strong>Tracking ID:</strong> {successData.tracking_id}</p>
-            <p><strong>Brand:</strong> {successData.brand}</p>
-            <p><strong>Model:</strong> {successData.model}</p>
-            <p><strong>Service:</strong> {successData.service}</p>
-            <p><strong>Name:</strong> {successData.name}</p>
-            <p><strong>Phone:</strong> {successData.phone}</p>
-
-            <button className="btn btn-success mt-3 w-100" onClick={handleCloseSuccess}>
-              OK
-            </button>
-          </div>
+          <button className="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow mt-2" onClick={() => { setSuccessData(null); onClose(); }}>
+            BACK TO DASHBOARD
+          </button>
         </div>
       )}
     </div>

@@ -51,28 +51,6 @@
 }
 
 /* ========================================
-   FIX HORIZONTAL SCROLLING (MOVE BAR)
-   ======================================== */
-html, body {
-  max-width: 100%;
-  overflow-x: hidden !important;
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  overflow-x: hidden;
-  width: 100%;
-}
-
-/* Fix for Bootstrap .row negative margin bleeding */
-.row {
-  max-width: 100%;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-/* ========================================
    HERO SECTION
    ======================================== */
 .hero-section {
