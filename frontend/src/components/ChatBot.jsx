@@ -41,47 +41,59 @@ export default function ChatBot() {
   }, [messages, isOpen]);
 
   const sendMessage = async (text) => {
-    const userMessage = text || input.trim();
-    if (!userMessage || isLoading) return;
+  const userMessage = text || input.trim();
+  if (!userMessage || isLoading) return;
 
-    setInput("");
-    const newMessages = [...messages, { role: "user", content: userMessage }];
-    setMessages(newMessages);
-    setIsLoading(true);
-    setIsTyping(true);
+  setInput("");
+  const newMessages = [...messages, { role: "user", content: userMessage }];
+  setMessages(newMessages);
+  setIsLoading(true);
+  setIsTyping(true);
 
-    try {
-      const res = await fetch(`${API_BASE}/chatbot/message`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    message: userMessage,
-    conversationHistory: newMessages.slice(-10),
-  }),
-});
+  // LOG 1: Check the URL being called
+  console.log("Fetching from URL:", `${API_BASE}/chatbot/message`);
 
-      const data = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/chatbot/message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: userMessage,
+        conversationHistory: newMessages.slice(-10),
+      }),
+    });
 
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: data.reply || "Sorry, I couldn't process that. Please try again.",
-        },
-      ]);
-    } catch {
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-      setIsTyping(false);
-    }
-  };
+    // LOG 2: Check the HTTP Status (200, 404, 500, etc.)
+    console.log("Response Status:", res.status);
+
+    const data = await res.json();
+
+    // LOG 3: Check the actual JSON content from the backend
+    console.log("Response Data:", data);
+
+    setMessages([
+      ...newMessages,
+      {
+        role: "assistant",
+        content: data.reply || "Sorry, I couldn't process that. Please try again.",
+      },
+    ]);
+  } catch (err) {
+    // LOG 4: Check for Network or CORS errors
+    console.error("Catch Block Error:", err);
+
+    setMessages([
+      ...newMessages,
+      {
+        role: "assistant",
+        content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
+      },
+    ]);
+  } finally {
+    setIsLoading(false);
+    setIsTyping(false);
+  }
+};
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {

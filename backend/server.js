@@ -118,7 +118,7 @@ app.post("/api/admin/login", (req, res) => {
 // -------------------- Chatbot Endpoint -------------------- //
 
 // POST /api/chatbot/message
-app.post("/api/chatbot/message", async (req, res) => {
+app.post("api/chatbot/message", async (req, res) => {
   const { message, conversationHistory } = req.body;
 
   if (!message) {
