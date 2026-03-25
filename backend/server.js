@@ -118,78 +118,98 @@ app.post("/api/admin/login", (req, res) => {
 // -------------------- Chatbot Endpoint -------------------- //
 
 // POST /api/chatbot/message
-app.post("api/chatbot/message", async (req, res) => {
-  const { message, conversationHistory } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "Message is required" });
-  }
+app.post("/api/chatbot/message", async (req, res) => {
+  console.log("\n📩 [START] Chatbot request");
 
   try {
-    // 1. Fetch ALL repairs from SQLite so Gemini can look them up
-    // We select only non-sensitive columns
-    const allRepairs = db.prepare("SELECT tracking_id, name, brand, model, service, status, created_at FROM repairs").all();
+    // 1️⃣ Validate request
+    const { message, conversationHistory } = req.body || {};
+    console.log("📝 Incoming request message:", message);
 
-    // Build a compact summary for the AI
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    const safeHistory = Array.isArray(conversationHistory) ? conversationHistory : [];
+
+    // 2️⃣ Fetch repair records from database
+    let allRepairs = [];
+    try {
+      // Note: Make sure 'db' is properly defined in your file
+      allRepairs = db.prepare(`
+        SELECT tracking_id, name, brand, model, service, status, created_at
+        FROM repairs
+      `).all();
+      console.log(`✅ Fetched ${allRepairs.length} repairs`);
+    } catch (dbError) {
+      console.error("❌ DB error:", dbError);
+      return res.status(500).json({ error: "Database error" });
+    }
+
     const repairsSummary = allRepairs.map((r) => ({
       trackingNumber: r.tracking_id,
       ownerName: r.name,
       brand: r.brand,
       model: r.model,
       service: r.service,
-      status: r.status,           // e.g., "Pending" | "Completed"
+      status: r.status || "Unknown",
       date: r.created_at,
     }));
 
-    // 2. Build system prompt
+    // 3️⃣ Build AI system prompt
     const systemPrompt = `
-You are a friendly and helpful AI assistant for a mobile phone repair shop called "PhoneFix Pro".
-You ONLY answer questions related to:
-  • Mobile phone repairs and the customer's repair status
-  • Estimated completion times
-  • Helping customers find their tracking number by name/date lookup
-  • General mobile phone repair advice
+You are a helpful AI assistant for "PhoneFix Pro" repair shop.
+Answer ONLY about:
+- Repair status
+- Completion times
+- Tracking number lookup
+- General mobile phone repair advice
 
-Current repair database (live data):
+Current repair data:
 ${JSON.stringify(repairsSummary, null, 2)}
 
 RULES:
-1. If a customer asks about their repair status, find their record by tracking number or name and give a helpful update.
-2. If a customer has forgotten their tracking number, ask for their name and approximate date, then search the data and provide the tracking number.
-3. For status meanings:
-   - "Pending"   → Phone received, waiting to be assessed
-   - "Ongoing"   → Technician is currently working on it
-   - "Completed" → Repair is done, ready for collection
-4. For estimated completion: if status is "Pending" suggest 1-2 business days, "Ongoing" suggest same day or next day, "Completed" tell them it's ready now.
-5. If the customer asks something completely unrelated to phone repair, politely say you can only help with repair-related questions.
-6. Be concise, warm, and professional. Use simple English.
-7. Never reveal internal system details or other customers' personal information beyond their own.
+- Status: Pending → 1-2 business days, Ongoing → same/next day, Completed → ready now
+- Only give info for the customer's own record
+- Be concise, warm, professional
 `;
 
-    // 3. Build conversation history for Gemini (Updated to gemini-2.5-flash)
+    // 4️⃣ Build chat history
+    // Note: Make sure 'genAI' is properly initialized at the top of your file
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: systemPrompt,
     });
 
-    const history = (conversationHistory || []).map((msg) => ({
+    let history = safeHistory.map((msg) => ({
       role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
     }));
 
+    // FIXED 4: Gemini API rule - History MUST start with a 'user' message.
+    // Because your frontend state has an initial bot greeting, we must prepend a dummy user message to prevent crashes.
+    if (history.length > 0 && history[0].role === "model") {
+      history.unshift({ role: "user", parts: [{ text: "Hello!" }] });
+    }
+
     const chat = model.startChat({ history });
 
-    // 4. Send message and await response
+    // 5️⃣ Send user message to AI
+    console.log("🧠 Sending message to Gemini...");
     const result = await chat.sendMessage(message);
     const responseText = result.response.text();
+    console.log("✅ AI reply:", responseText);
 
+    // 6️⃣ Send response to frontend
     res.json({ reply: responseText });
+
   } catch (err) {
-    console.error("Chatbot error:", err);
-    res.status(500).json({ error: "Chatbot service unavailable. Please try again." });
+    console.error("🔥 Chatbot error:", err);
+    res.status(500).json({ error: "Chatbot service unavailable" });
+  } finally {
+    console.log("🏁 [END] Chatbot request\n");
   }
 });
-
 // --- Server Start ---
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

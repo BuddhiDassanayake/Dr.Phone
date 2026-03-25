@@ -2,8 +2,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import config from "../config";
 
-
-
 const API_BASE = config.apiBaseUrl;
 
 const BOT_AVATAR = "🔧";
@@ -22,14 +20,13 @@ export default function ChatBot() {
     {
       role: "assistant",
       content:
-        "Hi there! 👋 I'm your PhoneFix Pro assistant. I can help you track your repair, find your tracking number, or answer any repair questions. How can I help you today?",
+        "Hi there! 👋 I'm your Dr.Phone assistant. I can help you track your repair, find your tracking number, or answer any repair questions. How can I help you today?",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  
-  // These lines caused your error - they must have 'useRef' imported above
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -38,62 +35,71 @@ export default function ChatBot() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isTyping]);
 
   const sendMessage = async (text) => {
-  const userMessage = text || input.trim();
-  if (!userMessage || isLoading) return;
+    const userMessage = text || input.trim();
+    if (!userMessage || isLoading) return;
 
-  setInput("");
-  const newMessages = [...messages, { role: "user", content: userMessage }];
-  setMessages(newMessages);
-  setIsLoading(true);
-  setIsTyping(true);
+    setInput("");
+    
+    // Create new array for UI updates
+    const newMessages = [...messages, { role: "user", content: userMessage }];
+    setMessages(newMessages);
+    setIsLoading(true);
+    setIsTyping(true);
 
-  // LOG 1: Check the URL being called
-  console.log("Fetching from URL:", `${API_BASE}/chatbot/message`);
+    // FIXED 1: Ensure URL hits `/api/chatbot/message`
+    // Depending on your config, you might need to adjust this string.
+    const endpointUrl = `${API_BASE}/chatbot/message`;
+    console.log("Fetching from URL:", endpointUrl);
 
-  try {
-    const res = await fetch(`${API_BASE}/chatbot/message`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: userMessage,
-        conversationHistory: newMessages.slice(-10),
-      }),
-    });
+    try {
+      console.log("📤 Sending message:", userMessage);
 
-    // LOG 2: Check the HTTP Status (200, 404, 500, etc.)
-    console.log("Response Status:", res.status);
+      const res = await fetch(endpointUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: String(userMessage || "").trim(),
+          // FIXED 2: Send 'messages' (past history), NOT 'newMessages' 
+          // Gemini fails if you send the current user message in the history AND as the new message.
+          conversationHistory: messages
+            .slice(-10) // limit history
+            .map((msg) => ({
+              role: msg.role === "assistant" ? "assistant" : "user",
+              content: String(msg.content || ""),
+            })),
+        }),
+      });
 
-    const data = await res.json();
+      console.log("Response Status:", res.status);
+      const data = await res.json();
+      console.log("Response Data:", data);
 
-    // LOG 3: Check the actual JSON content from the backend
-    console.log("Response Data:", data);
-
-    setMessages([
-      ...newMessages,
-      {
-        role: "assistant",
-        content: data.reply || "Sorry, I couldn't process that. Please try again.",
-      },
-    ]);
-  } catch (err) {
-    // LOG 4: Check for Network or CORS errors
-    console.error("Catch Block Error:", err);
-
-    setMessages([
-      ...newMessages,
-      {
-        role: "assistant",
-        content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-    setIsTyping(false);
-  }
-};
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: data.reply || "Sorry, I couldn't process that. Please try again.",
+        },
+      ]);
+    } catch (err) {
+      console.error("Catch Block Error:", err);
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+      setIsTyping(false);
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -111,19 +117,20 @@ export default function ChatBot() {
       {isOpen && (
         <div style={styles.window}>
           <div style={styles.header}>
-            <div style={styles.headerTitle}>PhoneFix Assistant</div>
+            <div style={styles.headerTitle}>Dr.Phone Assistant</div>
             <button onClick={() => setIsOpen(false)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}>X</button>
           </div>
 
           <div style={styles.messages}>
             {messages.map((msg, i) => (
               <div key={i} style={{...styles.msgRow, flexDirection: msg.role === "user" ? "row-reverse" : "row"}}>
-                <div style={styles.bubble, msg.role === "user" ? styles.userBubble : styles.botBubble}>
+                {/* FIXED 3: Correct React syntax for merging style objects */}
+                <div style={{ ...styles.bubble, ...(msg.role === "user" ? styles.userBubble : styles.botBubble) }}>
                   {msg.content}
                 </div>
               </div>
             ))}
-            {isTyping && <div style={{color: '#888', fontSize: '12px'}}>Assistant is typing...</div>}
+            {isTyping && <div style={{color: '#888', fontSize: '12px', paddingLeft: '10px'}}>Assistant is typing...</div>}
             <div ref={messagesEndRef} />
           </div>
 
@@ -150,7 +157,7 @@ const styles = {
   header: { padding: "15px", background: "#6366f1", color: "white", display: "flex", justifyContent: "space-between", fontWeight: "bold" },
   messages: { flex: 1, padding: "10px", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: '10px' },
   msgRow: { display: 'flex', gap: '8px' },
-  bubble: { padding: "8px 12px", borderRadius: "12px", fontSize: "14px", maxWidth: '80%' },
+  bubble: { padding: "8px 12px", borderRadius: "12px", fontSize: "14px", maxWidth: '80%', wordWrap: 'break-word' },
   botBubble: { backgroundColor: "#f1f1f1", color: "#333" },
   userBubble: { backgroundColor: "#6366f1", color: "white" },
   inputArea: { padding: "10px", display: "flex", gap: "5px", borderTop: "1px solid #eee" },
