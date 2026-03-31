@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // --- AI Setup ---
-const genAI = new GoogleGenerativeAI("AIzaSyD5RrKUo7Ynzdqzazd10RaG6CV4ymQEb78");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // --- Database Connection ---
 const db = new Database("drphone.db"); // SQLite file will be created automatically
