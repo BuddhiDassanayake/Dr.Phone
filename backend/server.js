@@ -143,7 +143,8 @@ app.post("/api/chatbot/message", async (req, res) => {
       console.log(`✅ Fetched ${allRepairs.length} repairs`);
     } catch (dbError) {
       console.error("❌ DB error:", dbError);
-      return res.status(500).json({ error: "Database error" });
+      // DEBUG: Send the exact database error to the frontend
+      return res.status(500).json({ error: `Database Error: ${dbError.message || dbError}` });
     }
 
     const repairsSummary = allRepairs.map((r) => ({
@@ -205,7 +206,8 @@ RULES:
 
   } catch (err) {
     console.error("🔥 Chatbot error:", err);
-    res.status(500).json({ error: "Chatbot service unavailable" });
+    // DEBUG: Send the exact Gemini/Server error to the frontend instead of a generic message
+    res.status(500).json({ error: `Server/Gemini Error: ${err.message || err}` });
   } finally {
     console.log("🏁 [END] Chatbot request\n");
   }
