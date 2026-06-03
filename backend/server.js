@@ -16,20 +16,22 @@ app.use(bodyParser.json());
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // --- Database Connection ---
-const db = new Database("drphone.db"); // SQLite file will be created automatically
+// Keeping the same db file as requested, but changing internal structure
+const db = new Database("drphone.db"); 
 
-// --- Table Creation ---
+// --- CLEAR OLD DATA & CREATE NEW TABLES ---
+db.prepare("DROP TABLE IF EXISTS repairs").run(); // Deletes old phone data
+
 db.prepare(`
-  CREATE TABLE IF NOT EXISTS repairs (
+  CREATE TABLE IF NOT EXISTS book_issues (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tracking_id TEXT UNIQUE,
-    brand TEXT,
-    model TEXT,
-    service TEXT,
-    issue TEXT,
-    name TEXT,
-    phone TEXT,
-    status TEXT DEFAULT 'Pending',
+    book_title TEXT,
+    author TEXT,
+    member_name TEXT,
+    member_email TEXT,
+    status TEXT DEFAULT 'Borrowed',
+    due_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `).run();
@@ -43,140 +45,112 @@ db.prepare(`
   )
 `).run();
 
-// Create default admin user if not exists
+// Create default admin user (Same credentials as before)
 const adminExists = db.prepare("SELECT * FROM users WHERE username = ?").get("admin");
 if (!adminExists) {
   db.prepare("INSERT INTO users (username, password) VALUES (?, ?)").run("admin", "password123");
-  console.log("Default admin created with username 'admin' and password 'password123'");
+  console.log("Default admin created (admin / password123)");
+}
+
+// --- SEED SAMPLE DATA ---
+const issueCount = db.prepare("SELECT COUNT(*) as count FROM book_issues").get().count;
+if (issueCount === 0) {
+  const seedQuery = db.prepare(`
+    INSERT INTO book_issues (tracking_id, book_title, author, member_name, member_email, status, due_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  seedQuery.run("LIB-1001", "The Great Gatsby", "F. Scott Fitzgerald", "Alice Johnson", "alice@test.com", "Borrowed", "2024-12-01");
+  seedQuery.run("LIB-1002", "Clean Code", "Robert C. Martin", "Bob Smith", "bob@test.com", "Overdue", "2023-10-15");
+  seedQuery.run("LIB-1003", "Design Patterns", "Gang of Four", "Charlie Davis", "charlie@test.com", "Returned", "2023-11-20");
+  console.log("Sample library data seeded successfully.");
 }
 
 // --- Helper Functions ---
 function generateTrackingId() {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const randomLetters =
-    letters.charAt(Math.floor(Math.random() * 26)) +
-    letters.charAt(Math.floor(Math.random() * 26)) +
-    letters.charAt(Math.floor(Math.random() * 26));
-  const randomNumbers = Math.floor(100 + Math.random() * 900); // 3 digits
-  return randomLetters + randomNumbers; 
+  const randomNumbers = Math.floor(1000 + Math.random() * 9000); 
+  return `LIB-${randomNumbers}`; 
 }
 
-// -------------------- API Endpoints -------------------- //
+// -------------------- API Endpoints (CRUD) -------------------- //
 
-// GET all repairs
-app.get("/api/repairs", (req, res) => {
-  const results = db.prepare("SELECT * FROM repairs").all();
+// GET all book issues
+app.get("/api/issues", (req, res) => {
+  const results = db.prepare("SELECT * FROM book_issues ORDER BY created_at DESC").all();
   res.json(results);
 });
 
-// POST a new repair
-app.post("/api/repairs", (req, res) => {
-  const { brand, model, service, issue, name, phone } = req.body;
+// POST a new book issue
+app.post("/api/issues", (req, res) => {
+  const { book_title, author, member_name, member_email, due_date } = req.body;
   const tracking_id = generateTrackingId();
-  db.prepare(`
-    INSERT INTO repairs (tracking_id, brand, model, service, issue, name, phone, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-  `).run(tracking_id, brand, model, service, issue, name, phone);
-
-  res.json({ tracking_id, brand, model, service, issue, name, phone, status: "Pending" });
+  
+  const stmt = db.prepare(`
+    INSERT INTO book_issues (tracking_id, book_title, author, member_name, member_email, status, due_date)
+    VALUES (?, ?, ?, ?, ?, 'Borrowed', ?)
+  `);
+  
+  const info = stmt.run(tracking_id, book_title, author, member_name, member_email, due_date);
+  res.json({ id: info.lastInsertRowid, tracking_id, book_title, status: "Borrowed" });
 });
 
-// GET repair by tracking ID
-app.get("/api/repairs/track/:tracking_id", (req, res) => {
+// GET issue by tracking ID (For Frontend Tracking Modal)
+app.get("/api/issues/track/:tracking_id", (req, res) => {
   const { tracking_id } = req.params;
-  const repair = db.prepare("SELECT * FROM repairs WHERE tracking_id = ?").get(tracking_id);
-  if (!repair) return res.status(404).json({ error: "Repair not found" });
-  res.json(repair);
+  const issue = db.prepare("SELECT * FROM book_issues WHERE tracking_id = ?").get(tracking_id);
+  if (!issue) return res.status(404).json({ error: "Record not found" });
+  res.json(issue);
 });
 
-// UPDATE repair status
-app.put("/api/repairs/:id", (req, res) => {
+// UPDATE issue status (Borrowed -> Returned)
+app.put("/api/issues/:id", (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const result = db.prepare("UPDATE repairs SET status = ? WHERE id = ?").run(status, id);
-  if (result.changes === 0) return res.status(404).json({ error: "Repair not found" });
-  res.json({ id: parseInt(id), status });
+  const result = db.prepare("UPDATE book_issues SET status = ? WHERE id = ?").run(status, id);
+  if (result.changes === 0) return res.status(404).json({ error: "Record not found" });
+  res.json({ message: "Status updated", id, status });
 });
 
-// DELETE repair
-app.delete("/api/repairs/:id", (req, res) => {
+// DELETE issue
+app.delete("/api/issues/:id", (req, res) => {
   const { id } = req.params;
-  const result = db.prepare("DELETE FROM repairs WHERE id = ?").run(id);
-  if (result.changes === 0) return res.status(404).json({ error: "Repair not found" });
-  res.json({ message: "Repair deleted successfully" });
+  const result = db.prepare("DELETE FROM book_issues WHERE id = ?").run(id);
+  if (result.changes === 0) return res.status(404).json({ error: "Record not found" });
+  res.json({ message: "Record deleted successfully" });
 });
 
-// --- Admin Login Endpoint (INSECURE: Plain-text password) ---
+// Admin Login
 app.post("/api/admin/login", (req, res) => {
   const { username, password } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE username = ? AND password = ?").get(username, password);
   if (!user) return res.status(401).json({ error: "Invalid username or password" });
-  res.json({ message: "Login successful", username: user.username });
+  res.json({ message: "Login successful", token: "fake-jwt-token-123" });
 });
 
 
 // -------------------- Chatbot Endpoint -------------------- //
-
-// POST /api/chatbot/message
 app.post("/api/chatbot/message", async (req, res) => {
-  console.log("\n📩 [START] Chatbot request");
-
   try {
-    // 1️⃣ Validate request
     const { message, conversationHistory } = req.body || {};
-    console.log("📝 Incoming request message:", message);
-
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Message is required" });
-    }
-
     const safeHistory = Array.isArray(conversationHistory) ? conversationHistory : [];
 
-    // 2️⃣ Fetch repair records from database
-    let allRepairs = [];
-    try {
-      // Note: Make sure 'db' is properly defined in your file
-      allRepairs = db.prepare(`
-        SELECT tracking_id, name, brand, model, service, status, created_at
-        FROM repairs
-      `).all();
-      console.log(`✅ Fetched ${allRepairs.length} repairs`);
-    } catch (dbError) {
-      console.error("❌ DB error:", dbError);
-      // DEBUG: Send the exact database error to the frontend
-      return res.status(500).json({ error: `Database Error: ${dbError.message || dbError}` });
-    }
+    // Fetch library data for AI Context
+    const allIssues = db.prepare(`SELECT tracking_id, book_title, member_name, status, due_date FROM book_issues`).all();
 
-    const repairsSummary = allRepairs.map((r) => ({
-      trackingNumber: r.tracking_id,
-      ownerName: r.name,
-      brand: r.brand,
-      model: r.model,
-      service: r.service,
-      status: r.status || "Unknown",
-      date: r.created_at,
-    }));
-
-    // 3️⃣ Build AI system prompt
     const systemPrompt = `
-You are a helpful AI assistant for "PhoneFix Pro" repair shop.
-Answer ONLY about:
-- Repair status
-- Completion times
-- Tracking number lookup
-- General mobile phone repair advice
+You are 'LibBot', a helpful AI assistant for EduLib Library.
+Answer questions regarding:
+- Book availability / Borrowing status
+- Tracking ID lookups
+- Library rules and due dates
 
-Current repair data:
-${JSON.stringify(repairsSummary, null, 2)}
+Current Borrowed Books Data:
+${JSON.stringify(allIssues, null, 2)}
 
 RULES:
-- Status: Pending → 1-2 business days, Ongoing → same/next day, Completed → ready now
-- Only give info for the customer's own record
-- Be concise, warm, professional
+- Be polite, concise, and act like a professional librarian.
+- If someone asks for tracking ID, use the provided data to tell them if their book is Overdue, Borrowed, or Returned.
 `;
 
-    // 4️⃣ Build chat history
-    // Note: Make sure 'genAI' is properly initialized at the top of your file
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: systemPrompt,
@@ -187,33 +161,19 @@ RULES:
       parts: [{ text: msg.content }],
     }));
 
-    // FIXED 4: Gemini API rule - History MUST start with a 'user' message.
-    // Because your frontend state has an initial bot greeting, we must prepend a dummy user message to prevent crashes.
     if (history.length > 0 && history[0].role === "model") {
       history.unshift({ role: "user", parts: [{ text: "Hello!" }] });
     }
 
     const chat = model.startChat({ history });
-
-    // 5️⃣ Send user message to AI
-    console.log("🧠 Sending message to Gemini...");
     const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
-    console.log("✅ AI reply:", responseText);
-
-    // 6️⃣ Send response to frontend
-    res.json({ reply: responseText });
+    res.json({ reply: result.response.text() });
 
   } catch (err) {
-    console.error("🔥 Chatbot error:", err);
-    // DEBUG: Send the exact Gemini/Server error to the frontend instead of a generic message
-    res.status(500).json({ error: `Server/Gemini Error: ${err.message || err}` });
-  } finally {
-    console.log("🏁 [END] Chatbot request\n");
+    console.error("Chatbot error:", err);
+    res.status(500).json({ error: "Server/Gemini Error" });
   }
 });
+
 // --- Server Start ---
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Gemini AI Status: ${process.env.GEMINI_API_KEY ? " API Key Loaded" : " Missing API Key"}`);
-});
+app.listen(PORT, () => console.log(`Library Backend running on port ${PORT}`));

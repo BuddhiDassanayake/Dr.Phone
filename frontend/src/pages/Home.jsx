@@ -66,7 +66,7 @@ export default function Home() {
                 <i className="bi bi-star-fill me-2"></i>Trusted by 50,000+ Readers
               </span>
               <h1 className="display-4 fw-bold mb-4 text-dark">
-                Unlock Knowledge at Your <span className="text-primary">Modern Library</span>
+                Unlock Knowledge at Your ! <span className="text-primary">Modern Library</span>
               </h1>
               <p className="lead text-muted mb-5">
                 Fast, reliable, and seamless access to a world of information. Discover books, digital resources, and quiet spaces tailored for you.
@@ -169,3 +169,10 @@ export default function Home() {
     </div>
   );
 }
+
+
+
+
+
+
+
