@@ -1,472 +1,161 @@
 import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import BookSearchModal from "../components/BookSearchModal";
+import AuthModal from "../components/AuthModal";
 import "../home.css";
 import "../index.css";
-import RepairTrackingModal from "../components/RepairTrackingModal";
 
-
-// Defines an array of features offered by the service
+// Features, Steps, and Categories
 const features = [
-  {
-    icon: "bi bi-shield-check",
-    title: "Certified Technicians",
-    description: "Your device is handled by accredited experts who ensure quality repairs.",
-  },
-  {
-    icon: "bi bi-lightning-charge-fill",
-    title: "Same-Day Service",
-    description: "We prioritize speed and efficiency to get your device back to you quickly.",
-  },
-  {
-    icon: "bi bi-gem",
-    title: "Premium Parts",
-    description: "We use only the highest quality parts, backed by our comprehensive warranty.",
-  },
+  { icon: "bi bi-book-half", title: "Vast Collection", description: "Access hundreds of physical books and e-books." },
+  { icon: "bi bi-laptop", title: "Digital Access", description: "Read, reserve, and renew books online 24/7." },
+  { icon: "bi bi-people-fill", title: "Community Spaces", description: "Enjoy quiet study rooms and collaborative workspaces." },
 ];
 
-// Defines an array of steps explaining how the repair process works
 const howItWorksSteps = [
-  {
-    icon: "bi bi-card-text",
-    title: "1. Get Quotation",
-    description: "Tell us the issue with your device, and we'll provide you with a free, transparent quote instantly.",
-  },
-  {
-    icon: "bi bi-box-seam",
-    title: "2. Register Your Device",
-    description: "Once you approve the quote, register your phone with us and detail the necessary repairs.",
-  },
-  {
-    icon: "bi bi-tools",
-    title: "3. Track Your Repair",
-    description: "Stay informed with real-time updates on the status of your repair from start to finish.",
-  },
+  { icon: "bi bi-search", title: "1. Search Catalog", description: "Browse our online catalog to find resources." },
+  { icon: "bi bi-bookmark-check", title: "2. Reserve", description: "Reserve your book online with one click." },
+  { icon: "bi bi-arrow-repeat", title: "3. Read & Return", description: "Easily return or renew through our portal." },
 ];
 
-// Defines an array of repair services offered, including images
-const repairServices = [
-  { name: "Screen Replacement", img: "/img5.jpeg" },
-  { name: "Battery Replacement", img: "/img6.jpeg" },
-  { name: "Motherboard Logic", img: "/img7.jpeg" },
-  { name: "Water Damage Repair", img: "/img10.jpeg" },
-  { name: "Camera & Lenses", img: "/img11.jpeg" },
-  { name: "Charging Port Fix", img: "/img12.jpg" },
+const bookCategories = [
+  { name: "Fiction & Literature", img: "https://images.unsplash.com/photo-1474932430478-367d16b99031?w=500&q=80" },
+  { name: "Science & Tech", img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&q=80" },
+  { name: "History", img: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?w=500&q=80" },
 ];
 
-// Defines an array of customer testimonials
-const testimonials = [
-  {
-    name: "Samantha R.",
-    feedback: "The service was incredibly fast and professional. My phone screen is perfect now. I can't recommend them enough!",
-    img: "/img8.jpeg",
-    rating: 5,
-  },
-  {
-    name: "Mike Chen",
-    feedback: "A truly reliable and honest repair shop. They fixed my laptop's motherboard when others said it was impossible.",
-    img: "/img8.jpeg",
-    rating: 5,
-  },
-];
-
-// Stats counter component
 const StatsCounter = ({ end, label, suffix = "" }) => {
   const [count, setCount] = useState(0);
-
   useEffect(() => {
     let start = 0;
     const duration = 2000;
     const increment = end / (duration / 16);
-
     const timer = setInterval(() => {
       start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
+      if (start >= end) { setCount(end); clearInterval(timer); } 
+      else { setCount(Math.floor(start)); }
     }, 16);
-
     return () => clearInterval(timer);
   }, [end]);
-
   return (
-    <div className="stat-item">
-      <h3 className="stat-number">{count}{suffix}</h3>
-      <p className="stat-label">{label}</p>
+    <div className="stat-item text-center">
+      <h2 className="fw-bold text-primary">{count}{suffix}</h2>
+      <p className="text-muted fw-semibold">{label}</p>
     </div>
   );
 };
 
 export default function Home() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your form submission logic here
-    console.log("Form submitted:", formData);
-    alert("Thank you for your message! We'll get back to you soon.");
+    alert("Message sent! A librarian will contact you soon.");
     setFormData({ name: "", email: "", message: "" });
   };
 
   return (
-    <>
-      {/* Hero Section with Enhanced Design */}
-      <section id="home" className="hero-section">
-        <div className="hero-overlay"></div>
-        <div className="hero-content">
-          <div className="hero-badge">
-            <i className="bi bi-star-fill"></i>
-            <span>Trusted by 10,000+ Customers</span>
-          </div>
-          <h1 className="hero-title">
-            Expert Repairs for Your <span className="text-gradient">Mobile Devices</span>
-          </h1>
-          <p className="hero-subtitle">
-            Fast, reliable, and professional service for all your mobile phones. 
-            Get your device back to perfect condition with our certified technicians.
-          </p>
-          
-          <div className="hero-buttons">
-            <button
-              className="btn btn-primary btn-lg rounded-pill shadow-lg"
-              data-bs-toggle="modal"
-              data-bs-target="#repairTrackingModal"
-            >
-              <i className="bi bi-search me-2"></i>
-              Track My Repair
-            </button>
-            <a href="#contact" className="btn btn-outline-light btn-lg rounded-pill">
-              <i className="bi bi-chat-dots me-2"></i>
-              Get a Quote
-            </a>
-          </div>
+    <div style={{ paddingTop: '70px' }}>
+      <Navbar />
 
-          {/* Trust Indicators */}
-          <div className="hero-stats">
-            <div className="stat-item">
-              <i className="bi bi-check-circle-fill"></i>
-              <span>Same-Day Service</span>
-            </div>
-            <div className="stat-item">
-              <i className="bi bi-shield-fill-check"></i>
-              <span>Warranty Included</span>
-            </div>
-            <div className="stat-item">
-              <i className="bi bi-lightning-fill"></i>
-              <span>Fast Turnaround</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Scroll indicator */}
-        <div className="scroll-indicator">
-          <div className="mouse">
-            <div className="wheel"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats-section">
+      {/* Modern Hero Section */}
+      <section id="home" className="hero-section bg-light py-5" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
         <div className="container">
-          <div className="row text-center g-4">
-            <div className="col-6 col-md-3">
-              <StatsCounter end={10000} label="Devices Repaired" suffix="+" />
+          <div className="row align-items-center">
+            <div className="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
+              <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-3">
+                <i className="bi bi-star-fill me-2"></i>Trusted by 50,000+ Readers
+              </span>
+              <h1 className="display-4 fw-bold mb-4 text-dark">
+                Unlock Knowledge at Your <span className="text-primary">Modern Library</span>
+              </h1>
+              <p className="lead text-muted mb-5">
+                Fast, reliable, and seamless access to a world of information. Discover books, digital resources, and quiet spaces tailored for you.
+              </p>
+              <div className="d-flex gap-3 justify-content-center justify-content-lg-start">
+                <button className="btn btn-primary btn-lg rounded-pill px-4 shadow" data-bs-toggle="modal" data-bs-target="#bookSearchModal">
+                  <i className="bi bi-search me-2"></i>Search Catalog
+                </button>
+                <button className="btn btn-outline-dark btn-lg rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#authModal">
+                  Become a Member
+                </button>
+              </div>
             </div>
-            <div className="col-6 col-md-3">
-              <StatsCounter end={98} label="Success Rate" suffix="%" />
-            </div>
-            <div className="col-6 col-md-3">
-              <StatsCounter end={24} label="Hour Service" suffix="h" />
-            </div>
-            <div className="col-6 col-md-3">
-              <StatsCounter end={5000} label="Happy Customers" suffix="+" />
+            <div className="col-lg-6">
+              <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80" alt="Library" className="img-fluid rounded-4 shadow-lg" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="site-section features-section">
+      {/* Stats */}
+      <section className="py-5 border-bottom">
         <div className="container">
-          <div className="section-header text-center mb-5">
-            <span className="section-badge">Why Choose Us</span>
-            <h2 className="section-heading">The Gold Standard in Device Repair</h2>
-            <p className="section-subheading">
-              We combine expertise, quality parts, and exceptional service to deliver the best repair experience.
-            </p>
-          </div>
-          
           <div className="row g-4">
-            {features.map((feature, index) => (
-              <div key={index} className="col-lg-4 col-md-6">
-                <div className="feature-card">
-                  <div className="feature-icon-wrapper">
-                    <div className="feature-icon">
-                      {feature.icon && <i className={feature.icon}></i>}
-                    </div>
-                  </div>
-                  <h5 className="feature-title">{feature.title}</h5>
-                  <p className="feature-description">{feature.description}</p>
-                </div>
-              </div>
-            ))}
+            <div className="col-6 col-md-3"><StatsCounter end={100} label="Books Available" suffix="k+" /></div>
+            <div className="col-6 col-md-3"><StatsCounter end={15} label="Active Members" suffix="k+" /></div>
+            <div className="col-6 col-md-3"><StatsCounter end={24} label="Digital Access" suffix="/7" /></div>
+            <div className="col-6 col-md-3"><StatsCounter end={50} label="Study Rooms" suffix="+" /></div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="site-section how-it-works-section">
-        <div className="container">
-          <div className="section-header text-center mb-5">
-            <span className="section-badge">Process</span>
-            <h2 className="section-heading">Our Simple 3-Step Process</h2>
-            <p className="section-subheading">
-              Getting your device repaired has never been easier. Follow these simple steps.
-            </p>
+      {/* Categories */}
+      <section id="services" className="py-5 bg-light">
+        <div className="container py-4">
+          <div className="text-center mb-5">
+            <h2 className="fw-bold">Explore by Category</h2>
+            <p className="text-muted">Find exactly what you need.</p>
           </div>
-          
-          <div className="row g-4 position-relative">
-            <div className="process-line d-none d-md-block"></div>
-            
-            {howItWorksSteps.map((step, index) => (
-              <div key={index} className="col-lg-4 col-md-4">
-                <div className="step-card">
-                  <div className="step-number">{index + 1}</div>
-                  <div className="step-icon-wrapper">
-                    <div className="step-icon">
-                      {step.icon && <i className={step.icon}></i>}
-                    </div>
-                  </div>
-                  <h5 className="step-title">{step.title}</h5>
-                  <p className="step-description">{step.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="site-section services-section">
-        <div className="container">
-          <div className="section-header text-center mb-5">
-            <span className="section-badge">Our Services</span>
-            <h2 className="section-heading">Repairs for Every Major Issue</h2>
-            <p className="section-subheading">
-              From cracked screens to water damage, we handle all types of mobile phone repairs.
-            </p>
-          </div>
-          
           <div className="row g-4">
-            {repairServices.map((service, index) => (
-              <div key={index} className="col-lg-4 col-md-6 col-sm-6">
-                <div className="service-card">
-                  <div className="service-img-wrapper">
-                    <img src={service.img} alt={service.name} className="service-img" />
-                    <div className="service-overlay">
-                      <div className="service-content">
-                        <h5 className="service-name">{service.name}</h5>
-                        <button className="btn btn-light btn-sm rounded-pill mt-2">
-                          Learn More <i className="bi bi-arrow-right ms-1"></i>
-                        </button>
-                      </div>
-                    </div>
+            {bookCategories.map((cat, i) => (
+              <div key={i} className="col-md-4">
+                <div className="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                  <img src={cat.img} className="card-img-top" alt={cat.name} style={{ height: '200px', objectFit: 'cover' }} />
+                  <div className="card-body text-center p-4">
+                    <h5 className="fw-bold">{cat.name}</h5>
+                    <button className="btn btn-light rounded-pill mt-3 text-primary" data-bs-toggle="modal" data-bs-target="#bookSearchModal">
+                      Browse Shelf <i className="bi bi-arrow-right"></i>
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="site-section testimonials-section">
-        <div className="container">
-          <div className="section-header text-center mb-5">
-            <span className="section-badge">Testimonials</span>
-            <h2 className="section-heading">Trusted by Customers Like You</h2>
-            <p className="section-subheading">
-              Don't just take our word for it. See what our satisfied customers have to say.
-            </p>
-          </div>
-          
-          <div className="row g-4 justify-content-center">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="col-lg-6 col-md-6">
-                <div className="testimonial-card">
-                  <div className="testimonial-header">
-                    <i className="bi bi-quote testimonial-quote-icon"></i>
-                    <div className="testimonial-rating">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <i key={i} className="bi bi-star-fill"></i>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="testimonial-feedback">"{testimonial.feedback}"</p>
-                  <div className="testimonial-author">
-                    <img src={testimonial.img} alt={testimonial.name} className="testimonial-img" />
-                    <div className="testimonial-info">
-                      <span className="testimonial-name">{testimonial.name}</span>
-                      <span className="testimonial-position">Verified Customer</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="cta-section">
-        <div className="container">
-          <div className="cta-content text-center">
-            <h2 className="cta-heading">Ready to Fix Your Device?</h2>
-            <p className="cta-subheading">
-              Get your free quote today and experience the best repair service in town.
-            </p>
-            <div className="cta-buttons">
-              <a href="#contact" className="btn btn-light btn-lg rounded-pill">
-                <i className="bi bi-calendar-check me-2"></i>
-                Book Now
-              </a>
-              <button
-                className="btn btn-outline-light btn-lg rounded-pill"
-                data-bs-toggle="modal"
-                data-bs-target="#repairTrackingModal"
-              >
-                <i className="bi bi-search me-2"></i>
-                Track Repair
-              </button>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="site-section contact-section">
-        <div className="container">
+      <section id="contact" className="py-5">
+        <div className="container py-4">
           <div className="row align-items-center g-5">
-            {/* Contact Info */}
-            <div className="col-lg-5">
-              <div className="contact-info">
-                <span className="section-badge">Get In Touch</span>
-                <h2 className="section-heading mb-4">Have a Question? We're Here to Help.</h2>
-                <p className="mb-4">
-                  Fill out the form and our team will get back to you within 24 hours. 
-                  You can also reach us through the following channels:
-                </p>
-                
-                <div className="contact-details">
-                  <div className="contact-item">
-                    <div className="contact-icon">
-                      <i className="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <div className="contact-text">
-                      <h6>Visit Us</h6>
-                      <p>123 Repair Street, Tech City, TC 12345</p>
-                    </div>
-                  </div>
-                  
-                  <div className="contact-item">
-                    <div className="contact-icon">
-                      <i className="bi bi-telephone-fill"></i>
-                    </div>
-                    <div className="contact-text">
-                      <h6>Call Us</h6>
-                      <p>+1 (555) 123-4567</p>
-                    </div>
-                  </div>
-                  
-                  <div className="contact-item">
-                    <div className="contact-icon">
-                      <i className="bi bi-envelope-fill"></i>
-                    </div>
-                    <div className="contact-text">
-                      <h6>Email Us</h6>
-                      <p>support@phonerepair.com</p>
-                    </div>
-                  </div>
-                  
-                  <div className="contact-item">
-                    <div className="contact-icon">
-                      <i className="bi bi-clock-fill"></i>
-                    </div>
-                    <div className="contact-text">
-                      <h6>Working Hours</h6>
-                      <p>Mon - Sat: 9:00 AM - 8:00 PM</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="col-lg-6">
+              <h2 className="fw-bold mb-4">Need Help Finding a Book?</h2>
+              <p className="text-muted mb-4">Fill out the form and our librarians will get back to you within 24 hours.</p>
+              <div className="d-flex align-items-center mb-3">
+                <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3"><i className="bi bi-geo-alt fs-5"></i></div>
+                <div><h6 className="mb-0 fw-bold">Visit Us</h6><p className="text-muted mb-0">123 Knowledge Ave, Book City</p></div>
+              </div>
+              <div className="d-flex align-items-center">
+                <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3"><i className="bi bi-envelope fs-5"></i></div>
+                <div><h6 className="mb-0 fw-bold">Email Us</h6><p className="text-muted mb-0">librarian@modernlibrary.com</p></div>
               </div>
             </div>
-            
-            {/* Contact Form */}
-            <div className="col-lg-7">
-              <div className="contact-form-wrapper">
-                <form className="contact-form" onSubmit={handleSubmit}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label htmlFor="name" className="form-label">Your Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="name"
-                          name="name"
-                          placeholder="John Doe"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="form-group">
-                        <label htmlFor="email" className="form-label">Your Email</label>
-                        <input
-                          type="email"
-                          className="form-control"
-                          id="email"
-                          name="email"
-                          placeholder="john@example.com"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                    </div>
+            <div className="col-lg-6">
+              <div className="bg-white p-4 p-md-5 rounded-4 shadow-sm border">
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Name</label>
+                    <input type="text" className="form-control rounded-3 py-2" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
                   </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="message" className="form-label">Your Message</label>
-                    <textarea
-                      className="form-control"
-                      id="message"
-                      name="message"
-                      rows="6"
-                      placeholder="Tell us about your device issue..."
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                    ></textarea>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Email</label>
+                    <input type="email" className="form-control rounded-3 py-2" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
                   </div>
-                  
-                  <button type="submit" className="btn btn-primary btn-lg w-100 rounded-pill">
-                    <i className="bi bi-send me-2"></i>
-                    Send Message
-                  </button>
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold">Message</label>
+                    <textarea className="form-control rounded-3 py-2" rows="4" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} required></textarea>
+                  </div>
+                  <button type="submit" className="btn btn-primary w-100 py-3 rounded-pill fw-bold">Send Message</button>
                 </form>
               </div>
             </div>
@@ -474,8 +163,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Repair Tracking Modal */}
-      <RepairTrackingModal />
-    </>
+      {/* Inject Modals at the bottom of the page */}
+      <BookSearchModal />
+      <AuthModal />
+    </div>
   );
 }

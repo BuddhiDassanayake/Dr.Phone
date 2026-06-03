@@ -1,41 +1,62 @@
-// src/components/ChatBot.jsx
 import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import config from "../config";
 
 const API_BASE = config.apiBaseUrl;
 
-const BOT_AVATAR = "🔧";
-const USER_AVATAR = "👤";
-
 const QUICK_REPLIES = [
-  "Check my repair status",
-  "I forgot my tracking number",
-  "How long will my repair take?",
-  "What repairs do you offer?",
+  { label: "📦 Status", value: "Check my repair status" },
+  { label: "🔍 Lost ID", value: "I forgot my tracking number" },
+  { label: "⏱️ Time", value: "How long will my repair take?" },
+  { label: "🛠️ Services", value: "What repairs do you offer?" },
 ];
+
+const formatMessage = (text) => {
+  if (!text || typeof text !== 'string') return null;
+
+  const combinedRegex = /(\*\*.*?\*\*|ORD-\d+|#\d{4,10}|\$\d+(?:\.\d{2})?|Ready|Fixed|Completed|Processing|Delayed|Cancelled)/gi;
+
+  return text.split("\n").map((line, i) => {
+    if (!line.trim()) return <br key={i} />;
+    const parts = line.split(combinedRegex);
+    return (
+      <div key={i} style={{ margin: "4px 0", lineHeight: "1.5" }}>
+        {parts.map((part, j) => {
+          if (!part) return null;
+          const lowerPart = part.toLowerCase();
+
+          if (/ORD-\d+|#\d{4,}/gi.test(part)) return <span key={j} style={styles.trackingBadge}>🎫 {part}</span>;
+          if (/\$\d+/g.test(part)) return <span key={j} style={styles.priceHighlight}>{part}</span>;
+          if (["ready", "fixed", "completed"].includes(lowerPart)) return <span key={j} style={styles.statusSuccess}>{part}</span>;
+          if (["delayed", "cancelled"].includes(lowerPart)) return <span key={j} style={styles.statusAlert}>{part}</span>;
+          if (["processing"].includes(lowerPart)) return <span key={j} style={styles.statusNeutral}>{part}</span>;
+          if (part.startsWith("**") && part.endsWith("**")) return <span key={j} style={styles.boldText}>{part.replace(/\*\*/g, "")}</span>;
+
+          return part;
+        })}
+      </div>
+    );
+  });
+};
 
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [userName, setUserName] = useState(localStorage.getItem("drphone_user") || "");
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content:
-        "Hi there! 👋 I'm your Dr.Phone assistant. I can help you track your repair, find your tracking number, or answer any repair questions. How can I help you today?",
+      content: userName 
+        ? `Welcome back, **${userName}**! 👨‍🔧 How can **Dr.Phone** help you today? 😊` 
+        : "Hi there! 🤖 I'm the **Dr.Phone** assistant. May I start by asking your **name**? 🧐",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      inputRef.current?.focus();
-    }
-  }, [messages, isOpen, isTyping]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   const sendMessage = async (text) => {
     const userMessage = text || input.trim();
@@ -43,124 +64,159 @@ export default function ChatBot() {
 
     setInput("");
     
-    // Create new array for UI updates
-    const newMessages = [...messages, { role: "user", content: userMessage }];
-    setMessages(newMessages);
-    setIsLoading(true);
-    setIsTyping(true);
+    // Personalization logic
+    let currentName = userName;
+    if (!userName) {
+        currentName = userMessage.split(' ').pop(); 
+        setUserName(currentName);
+        localStorage.setItem("drphone_user", currentName);
+    }
 
-    // FIXED 1: Ensure URL hits `/api/chatbot/message`
-    // Depending on your config, you might need to adjust this string.
-    const endpointUrl = `${API_BASE}/chatbot/message`;
-    console.log("Fetching from URL:", endpointUrl);
+    // 1. Add user message to local state immediately
+    const updatedMessages = [...messages, { role: "user", content: userMessage }];
+    setMessages(updatedMessages);
+    setIsLoading(true);
 
     try {
-      console.log("📤 Sending message:", userMessage);
+      console.log("📤 Sending to Dr.Phone API:", userMessage);
 
-      const res = await fetch(endpointUrl, {
+      const res = await fetch(`${API_BASE}/chatbot/message`, {
         method: "POST",
-        headers: {
+        headers: { 
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache" // Prevent browser from caching responses
         },
         body: JSON.stringify({
-          message: String(userMessage || "").trim(),
-          // FIXED 2: Send 'messages' (past history), NOT 'newMessages' 
-          // Gemini fails if you send the current user message in the history AND as the new message.
-          conversationHistory: messages
-            .slice(-10) // limit history
-            .map((msg) => ({
-              role: msg.role === "assistant" ? "assistant" : "user",
-              content: String(msg.content || ""),
-            })),
+          message: userMessage,
+          userName: currentName,
+          // 2. CRITICAL FIX: Send the UPDATED history including the latest message
+          conversationHistory: updatedMessages.slice(-8).map(m => ({
+            role: m.role === "assistant" ? "model" : "user", // "model" works better for Gemini backends
+            content: String(m.content)
+          })),
+          timestamp: Date.now() // Unique ID to force new backend processing
         }),
       });
 
-      console.log("Response Status:", res.status);
       const data = await res.json();
-      console.log("Response Data:", data);
+      
+      // 3. Fallback logic to prevent empty/same replies
+      const botReply = data.reply && data.reply.length > 0 
+        ? data.reply 
+        : `I'm processing your request, **${currentName}**... could you tell me more? 🧐`;
 
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: data.reply || "Sorry, I couldn't process that. Please try again.",
-        },
-      ]);
+      setMessages(prev => [...prev, { role: "assistant", content: botReply }]);
     } catch (err) {
-      console.error("Catch Block Error:", err);
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: "⚠️ I'm having trouble connecting right now. Please try again in a moment.",
-        },
-      ]);
+      console.error("Chat Error:", err);
+      setMessages(prev => [...prev, { role: "assistant", content: "I'm having a bit of trouble connecting! 😧 Please try again. 🔄" }]);
     } finally {
       setIsLoading(false);
-      setIsTyping(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
     }
   };
 
   return (
-    <>
-      <button onClick={() => setIsOpen((o) => !o)} style={styles.fab}>
-        {isOpen ? "✖" : "💬"}
-      </button>
+    <div style={styles.container}>
+      <motion.button 
+        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)} style={styles.fab}
+      >
+        {isOpen ? "✕" : "🤖"}
+      </motion.button>
 
-      {isOpen && (
-        <div style={styles.window}>
-          <div style={styles.header}>
-            <div style={styles.headerTitle}>Dr.Phone Assistant</div>
-            <button onClick={() => setIsOpen(false)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}>X</button>
-          </div>
-
-          <div style={styles.messages}>
-            {messages.map((msg, i) => (
-              <div key={i} style={{...styles.msgRow, flexDirection: msg.role === "user" ? "row-reverse" : "row"}}>
-                {/* FIXED 3: Correct React syntax for merging style objects */}
-                <div style={{ ...styles.bubble, ...(msg.role === "user" ? styles.userBubble : styles.botBubble) }}>
-                  {msg.content}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            style={styles.window}
+          >
+            <div style={styles.header}>
+              <div style={styles.headerInfo}>
+                <div style={styles.statusDot} />
+                <div>
+                  <div style={{ fontWeight: "800", fontSize: "17px" }}>Dr.Phone 👨‍🔧</div>
+                  <div style={{ fontSize: "11px", opacity: 0.8 }}>{userName ? `Assisting ${userName}` : "Live Expert"}</div>
                 </div>
               </div>
-            ))}
-            {isTyping && <div style={{color: '#888', fontSize: '12px', paddingLeft: '10px'}}>Assistant is typing...</div>}
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
 
-          <div style={styles.inputArea}>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type here..."
-              style={styles.textarea}
-            />
-            <button onClick={() => sendMessage()} style={styles.sendBtn}>Send</button>
-          </div>
-        </div>
-      )}
-    </>
+            <div style={styles.scrollArea}>
+              <div style={styles.messageList}>
+                {messages.map((msg, i) => (
+                  msg.content && (
+                    <div key={i} style={{ ...styles.msgRow, justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        style={{ ...styles.bubble, ...(msg.role === "user" ? styles.userBubble : styles.botBubble) }}
+                      >
+                        {formatMessage(msg.content)}
+                      </motion.div>
+                    </div>
+                  )
+                ))}
+                {isLoading && (
+                  <div style={styles.typingIndicator}>
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.8 }} style={styles.dot} />
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }} style={styles.dot} />
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }} style={styles.dot} />
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+
+            {!isLoading && (
+              <div style={styles.quickReplyContainer}>
+                {QUICK_REPLIES.map((q, i) => (
+                  <button key={i} onClick={() => sendMessage(q.value)} style={styles.quickReplyChip}>{q.label}</button>
+                ))}
+              </div>
+            )}
+
+            <div style={styles.inputArea}>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                placeholder="Ask Dr.Phone... 🧐"
+                style={styles.input}
+              />
+              <button onClick={() => sendMessage()} style={styles.sendBtn}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 const styles = {
-  fab: { position: "fixed", bottom: "20px", right: "20px", width: "60px", height: "60px", borderRadius: "50%", backgroundColor: "#6366f1", color: "white", border: "none", cursor: "pointer", zIndex: 10000, fontSize: "24px" },
-  window: { position: "fixed", bottom: "90px", right: "20px", width: "350px", height: "500px", backgroundColor: "#fff", boxShadow: "0 5px 40px rgba(0,0,0,0.2)", borderRadius: "10px", display: "flex", flexDirection: "column", zIndex: 10000, overflow: 'hidden', border: '1px solid #ddd' },
-  header: { padding: "15px", background: "#6366f1", color: "white", display: "flex", justifyContent: "space-between", fontWeight: "bold" },
-  messages: { flex: 1, padding: "10px", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: '10px' },
-  msgRow: { display: 'flex', gap: '8px' },
-  bubble: { padding: "8px 12px", borderRadius: "12px", fontSize: "14px", maxWidth: '80%', wordWrap: 'break-word' },
-  botBubble: { backgroundColor: "#f1f1f1", color: "#333" },
-  userBubble: { backgroundColor: "#6366f1", color: "white" },
-  inputArea: { padding: "10px", display: "flex", gap: "5px", borderTop: "1px solid #eee" },
-  textarea: { flex: 1, padding: "8px", borderRadius: "5px", border: "1px solid #ddd" },
-  sendBtn: { padding: "8px 15px", backgroundColor: "#6366f1", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }
+  container: { fontFamily: '"Plus Jakarta Sans", sans-serif' },
+  fab: { position: "fixed", bottom: "30px", right: "30px", width: "65px", height: "65px", borderRadius: "22px", backgroundColor: "#4F46E5", color: "white", border: "none", cursor: "pointer", zIndex: 10000, fontSize: "28px", boxShadow: "0 10px 30px rgba(79, 70, 229, 0.4)" },
+  window: { position: "fixed", bottom: "110px", right: "30px", width: "380px", height: "600px", backgroundColor: "#ffffff", boxShadow: "0 20px 50px rgba(0,0,0,0.15)", borderRadius: "28px", display: "flex", flexDirection: "column", zIndex: 10000, overflow: 'hidden' },
+  header: { padding: "20px 25px", background: "#4F46E5", color: "white" },
+  headerInfo: { display: "flex", alignItems: "center", gap: "12px" },
+  statusDot: { width: "10px", height: "10px", backgroundColor: "#10B981", borderRadius: "50%", border: '2px solid white' },
+  scrollArea: { flex: "1 1 0%", overflowY: "auto", background: "#F8FAFC", minHeight: 0 },
+  messageList: { padding: "20px", display: "flex", flexDirection: "column", gap: "12px" },
+  msgRow: { display: 'flex', width: '100%' },
+  bubble: { padding: "12px 16px", borderRadius: "20px", fontSize: "14.5px", maxWidth: '85%', wordWrap: 'break-word' },
+  botBubble: { backgroundColor: "white", color: "#1E293B", borderBottomLeftRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' },
+  userBubble: { backgroundColor: "#4F46E5", color: "white", borderBottomRightRadius: '4px' },
+  trackingBadge: { backgroundColor: "#FEF3C7", color: "#B45309", padding: "3px 10px", borderRadius: "8px", fontWeight: "800", border: "1px solid #F59E0B", margin: "0 2px", fontSize: "13px" },
+  statusSuccess: { color: "#059669", fontWeight: "700", backgroundColor: "#D1FAE5", padding: "2px 6px", borderRadius: "6px" },
+  statusAlert: { color: "#DC2626", fontWeight: "700", backgroundColor: "#FEE2E2", padding: "2px 6px", borderRadius: "6px" },
+  statusNeutral: { color: "#4F46E5", fontWeight: "700", backgroundColor: "#EEF2FF", padding: "2px 6px", borderRadius: "6px" },
+  priceHighlight: { color: "#4F46E5", fontWeight: "800", textDecoration: "underline" },
+  boldText: { color: "#1E293B", fontWeight: "700" },
+  quickReplyContainer: { display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '15px 20px', background: '#F8FAFC' },
+  quickReplyChip: { padding: '8px 14px', borderRadius: '12px', border: '1px solid #E2E8F0', backgroundColor: 'white', color: '#4F46E5', fontSize: '12px', cursor: 'pointer', fontWeight: '700' },
+  inputArea: { padding: "15px 20px", display: "flex", gap: "10px", background: 'white', borderTop: '1px solid #F1F5F9' },
+  input: { flex: 1, padding: "12px", borderRadius: "12px", border: "1px solid #E2E8F0", outline: 'none', fontSize: '14px' },
+  sendBtn: { background: "#4F46E5", border: "none", borderRadius: "12px", width: "45px", height: "45px", cursor: "pointer", display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  typingIndicator: { display: 'flex', gap: '4px', paddingLeft: '5px' },
+  dot: { width: '6px', height: '6px', background: '#94A3B8', borderRadius: '50%' }
 };
